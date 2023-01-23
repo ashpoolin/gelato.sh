@@ -1,0 +1,29 @@
+.footer {
+    position: absolute;
+    bottom: -100px;
+    height: 100px;
+    /* min-height: 100%; */
+    padding: 20px;
+    left: 0;
+    width: 100%;
+    color: #ff7f50;
+    font-size: calc(10px + 1vmin);
+    text-align: center;
+    background-color: #15171b;
+    list-style-type: none;
+    vertical-align: middle
+  }
+
+.list-inline {
+	list-style: none;
+	margin-left: -0.5em;
+	margin-right: -0.5em;
+	padding-left: 0;
+    display: inline-block;
+}
+
+.list-inline > li {
+    display: inline-block;
+    margin-left: 0.5em;
+	margin-right: 0.5em;
+}

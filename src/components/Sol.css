@@ -1,0 +1,30 @@
+#main-wrapper {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    display: inline-block;
+    /* margin-left: 25%; */
+    /* margin-right: 25%; */
+    position: relative;
+    vertical-align: middle;
+    /* height: 1000px; */
+    /* width:  1000px; */
+    width: 50%;
+}
+#filler {
+    height: 250px;
+}
+
+#table-wrapper {
+    height: 300px;
+}
+
+.row {
+    display: flex;
+  }
+  
+  .column-left {
+    flex: 65%;
+  }
+  .column-right {
+    flex: 35%;
+  }

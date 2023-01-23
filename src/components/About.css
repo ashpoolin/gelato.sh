@@ -1,0 +1,14 @@
+.App-logo {
+    width: 150px;
+    height: 150px;
+  }
+
+.lists {
+    list-style-type: none;
+    vertical-align: middle;
+    list-style: none;
+	margin-left: -0.5em;
+	margin-right: -0.5em;
+	padding-left: 0;
+    display: inline-block;
+}
