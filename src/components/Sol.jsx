@@ -189,7 +189,7 @@ function Sol() {
             <TableCell>balance</TableCell>
             <TableCell>change</TableCell>
           </TableRow>
-        {eventData.map(row => <TableRow><TableCell>{row[0]}</TableCell><TableCell>{row[1]}</TableCell><TableCell>{exchangeLabelMap.get(row[2])}</TableCell><TableCell>{row[2].slice(0,4)}...{row[2].slice(row[2].length - 4)}</TableCell><TableCell>{row[3]}</TableCell><TableCell>{row[4]}</TableCell></TableRow>)}
+        {eventData.map(row => <TableRow><TableCell>{row[0]}</TableCell><TableCell>{row[1]}</TableCell><TableCell>{exchangeLabelMap.get(row[2])}</TableCell><TableCell>{row[2].slice(0,4)}...{row[2].slice(row[2].length - 4)}</TableCell><TableCell>{row[3]}</TableCell><TableCell>{(Math.abs(row[4]) > 100000) ? row[4] + " " + String.fromCodePoint("0x1F6A9"): row[4]}</TableCell></TableRow>)}
         </TableBody>
       </Table>
     </TableContainer>
@@ -211,7 +211,7 @@ function Sol() {
       </div>
       <div class="row">
         <div class="column-left">
-
+          <p>{}</p>
         </div>
         <div class="column-right">
 
