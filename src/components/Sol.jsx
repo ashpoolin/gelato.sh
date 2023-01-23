@@ -14,6 +14,9 @@ import {
 import { Scatter } from 'react-chartjs-2';
 import { TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
+const URL = process.env.REACT_APP_API_URL;
+// const URL = "http://localhost:3001"
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -110,7 +113,7 @@ function Sol() {
   }, []);
   function getExchangeData() {
     exchangeLookup.map(async exchange => {
-      await fetch(`http://localhost:3001/${exchange[1]}`)
+      await fetch(`${URL}/${exchange[1]}`)
       .then(response => {
         return response.text();
       })
@@ -137,7 +140,7 @@ function Sol() {
     getLatestEvents();
   }, []);
   function getLatestEvents() {
-      fetch(`http://localhost:3001/events`)
+      fetch(`${URL}/events`)
       .then(response => {
         return response.text();
       })
