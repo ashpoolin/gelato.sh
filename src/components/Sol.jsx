@@ -225,7 +225,7 @@ function Sol() {
             <TableCell><b>balance</b></TableCell>
             <TableCell><b>share of total (%)</b></TableCell>
           </TableRow>
-        {balanceData.map(row => <TableRow><TableCell>{row.label}</TableCell><TableCell><a href={"https://solana.fm/address/" + row.owner + "?cluster=mainnet-qn1"}>{row.owner.slice(0,4)}...{row.owner.slice(row.owner.length - 4)}</a></TableCell><TableCell>{row.latest_balance}</TableCell><TableCell>{row.pct_share}</TableCell></TableRow>)}
+        {balanceData.map(row => <TableRow><TableCell>{row.label}</TableCell><TableCell><a href={"https://solana.fm/address/" + row.owner + "?cluster=mainnet-qn1"}>{row.owner.slice(0,4)}...{row.owner.slice(row.owner.length - 4)}</a></TableCell><TableCell>{row.latest_balance}</TableCell><TableCell>{Math.round(row.pct_share * 100) / 100}</TableCell></TableRow>)}
         </TableBody>
       </Table>
     </TableContainer>
