@@ -10,6 +10,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement
 } from 'chart.js';
 import { Scatter } from 'react-chartjs-2';
 import { TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
@@ -25,7 +26,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ArcElement
 );
 
 export const options = {
@@ -93,6 +95,7 @@ function Sol() {
     ['mexc','ASTyfSima4LLAdDgoFGkgqoKowG1LZFDr9fAQrg7iaJZ'],	
   ]);
   const [eventData, setEventData] = useState([]);
+  const [balanceData, setBalanceData] = useState([]); 
 
   const exchangeLabelMap = new Map();
   exchangeLabelMap.set('5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9','Binance_hot');	
@@ -152,6 +155,20 @@ function Sol() {
       });
   }
 
+  useEffect(() => {
+    getExchangeBalances();
+  }, []);
+  function getExchangeBalances() {
+      fetch(`${URL}/balances`)
+      .then(response => {
+        return response.text();
+      })
+      .then(data => {
+        const dataObj = JSON.parse(data);
+        setBalanceData(dataObj);
+      });
+  }
+
   function getRandomColor() {
     const colorArray = ['#FF7F50','#FCFCFC','#3DDC97','#46237A','#256EFF','#1446a0','#99D17B','#3C3C3B','#B4436C','#9D8DF1','#5FAD56','#4D9078','#4D9078','#645DD7','#B3FFFC'];
     const index = Math.floor(Math.random() * (colorArray.length - 0 + 1) + 0)
@@ -182,14 +199,33 @@ function Sol() {
         <Table sx={{height: "max-content"}}   options={{filtering: true}}>
         <TableBody>
           <TableRow>
-            <TableCell>date</TableCell>
-            <TableCell>slot</TableCell>
-            <TableCell>exchange</TableCell>
-            <TableCell>owner</TableCell>
-            <TableCell>balance</TableCell>
-            <TableCell>change</TableCell>
+            <TableCell><b>date</b></TableCell>
+            <TableCell><b>slot</b></TableCell>
+            <TableCell><b>exchange</b></TableCell>
+            <TableCell><b>owner</b></TableCell>
+            <TableCell><b>balance</b></TableCell>
+            <TableCell><b>change (%)</b></TableCell>
+            <TableCell><b>change (SOL)</b></TableCell>
           </TableRow>
-        {eventData.map(row => <TableRow><TableCell>{row[0]}</TableCell><TableCell>{row[1]}</TableCell><TableCell>{exchangeLabelMap.get(row[2])}</TableCell><TableCell>{row[2].slice(0,4)}...{row[2].slice(row[2].length - 4)}</TableCell><TableCell>{row[3]}</TableCell><TableCell>{(Math.abs(row[4]) > 100000) ? row[4] + " " + String.fromCodePoint("0x1F6A9"): row[4]}</TableCell></TableRow>)}
+        {eventData.map(row => <TableRow><TableCell>{row[0]}</TableCell><TableCell>{row[1]}</TableCell><TableCell>{exchangeLabelMap.get(row[2])}</TableCell><TableCell><a href={"https://solana.fm/address/" + row[2] + "?cluster=mainnet-qn1"}>{row[2].slice(0,4)}...{row[2].slice(row[2].length - 4)}</a></TableCell><TableCell>{row[3]}</TableCell><TableCell>{Math.round(row[4] / row[3] * 100 * 100) / 100}</TableCell><TableCell>{(Math.abs(row[4]) > 100000) ? row[4] + " " + String.fromCodePoint("0x1F6A9"): row[4]}</TableCell></TableRow>)}
+        </TableBody>
+      </Table>
+    </TableContainer>
+    );
+  }
+
+  function renderExchangeTable() {
+    return (
+      <TableContainer sx={{height: 250}}>
+        <Table sx={{height: "max-content"}}   options={{filtering: true}}>
+        <TableBody>
+          <TableRow>
+            <TableCell><b>exchange</b></TableCell>
+            <TableCell><b>address</b></TableCell>
+            <TableCell><b>balance</b></TableCell>
+            <TableCell><b>share of total (%)</b></TableCell>
+          </TableRow>
+        {balanceData.map(row => <TableRow><TableCell>{row.label}</TableCell><TableCell><a href={"https://solana.fm/address/" + row.owner + "?cluster=mainnet-qn1"}>{row.owner.slice(0,4)}...{row.owner.slice(row.owner.length - 4)}</a></TableCell><TableCell>{row.latest_balance}</TableCell><TableCell>{row.pct_share}</TableCell></TableRow>)}
         </TableBody>
       </Table>
     </TableContainer>
@@ -209,18 +245,16 @@ function Sol() {
           could signify a buyer has been accumulating. 
         </p>
       </div>
-      <div class="row">
-        <div class="column-left">
-          <p>{}</p>
-        </div>
-        <div class="column-right">
-
-        </div>
-      </div>
       <div id="table-wrapper">
         <br/>
         <p><b>Recent Inflow/Outflows (&gt;10k SOL):</b></p>
         {renderTable()}
+        <br />
+      </div>
+      <div id="exch-table-wrapper">
+        <br />
+        <p><b>On-Exchange Balance Summary (descending):</b></p>
+        {renderExchangeTable()}
       </div>
     </div>
   );

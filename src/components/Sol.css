@@ -18,6 +18,12 @@
     height: 300px;
 }
 
+#exch-table-wrapper {
+  height: 300px;
+  padding-top: 50px;
+  /* clear: both; */
+}
+
 .row {
     display: flex;
   }
