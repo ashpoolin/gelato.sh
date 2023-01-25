@@ -1,5 +1,4 @@
 import './About.css';
-import { Link } from 'react-router-dom';
 import logo from './Gelato_Logo-04.png';
 
 function About() {
