@@ -202,14 +202,21 @@ const [inflowData, setInflowData] = useState([]);
         const dataObj = JSON.parse(data);
         const x_data = [];
         const y_data = [];
+        const y2_data = [];
+        const y3_data = [];
         dataObj.map(line => x_data.push((new Date(line.dt)).toISOString().split('T')[0])); 
         dataObj.map(line => y_data.push(line.net));
-        setInflowData([x_data, y_data]);
+        dataObj.map(line => y2_data.push(line.inflows));
+        dataObj.map(line => y3_data.push(line.outflows));
+
+        setInflowData([x_data, y_data, y2_data, y3_data]);
       });
   }
 
   const labels = inflowData[0];
   const netInflowData = inflowData[1];
+  const inData = inflowData[2];
+  const outData = inflowData[3];
 
 const inflowChartData = {
   labels,
@@ -218,6 +225,16 @@ const inflowChartData = {
       label: 'Net Inflow/Outflow',
       data: netInflowData,
       backgroundColor: '#FF7F50',
+    },
+    {
+      label: 'Inflows',
+      data: inData,
+      backgroundColor: '#FCFCFC',
+    },
+    {
+      label: 'Outflows',
+      data: outData,
+      backgroundColor: '#3DDC97',
     },
   ],
 };
@@ -316,6 +333,7 @@ const inflowChartData = {
         <p><b>On-Exchange Balance Summary (descending):</b></p>
         {renderExchangeTable()}
       </div>
+      {/* {inData.toString()} */}
       <div id="filler" />
     </div>
   );
