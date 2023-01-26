@@ -5,9 +5,7 @@ function Spl() {
   return (
     
     <div>
-      <div id="chart-wrapper">
-        <p>Reserved for SPL token data</p>
-      </div>
+      <p>Reserved for SPL token data</p>
       <div id="filler" />
     </div>
     );

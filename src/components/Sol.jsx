@@ -7,12 +7,14 @@ import {
   LogarithmicScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
   ArcElement
 } from 'chart.js';
-import { Scatter } from 'react-chartjs-2';
+
+import { Scatter, Bar } from 'react-chartjs-2';
 import { TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
 const URL = process.env.REACT_APP_API_URL;
@@ -24,6 +26,7 @@ ChartJS.register(
   LogarithmicScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -76,6 +79,19 @@ export const options = {
       }
     }
 }
+};
+
+export const inflowChartOptions = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top',
+    },
+    title: {
+      display: true,
+      text: 'Combined Exchange Flows by Date',
+    },
+  },
 };
 
 function Sol() {
@@ -169,6 +185,43 @@ function Sol() {
       });
   }
 
+// NET INFLOW CHART DATA PULL AND CONFIG
+const [inflowData, setInflowData] = useState([]);
+
+  useEffect(() => {
+    getNetInflows();
+  }, []);
+  function getNetInflows() {
+    // exchangeLookup.map(async exchange => {
+      fetch(`${URL}/inflows`)
+      .then(response => {
+        return response.text();
+      })
+      .then(data => {
+        // transposing the column-based data to x,y (point) form for the 2D scatter plot 
+        const dataObj = JSON.parse(data);
+        const x_data = [];
+        const y_data = [];
+        dataObj.map(line => x_data.push((new Date(line.dt)).toISOString().split('T')[0])); 
+        dataObj.map(line => y_data.push(line.net));
+        setInflowData([x_data, y_data]);
+      });
+  }
+
+  const labels = inflowData[0];
+  const netInflowData = inflowData[1];
+
+const inflowChartData = {
+  labels,
+  datasets: [
+    {
+      label: 'Net Inflow/Outflow',
+      data: netInflowData,
+      backgroundColor: '#FF7F50',
+    },
+  ],
+};
+
   function getRandomColor() {
     const colorArray = ['#FF7F50','#FCFCFC','#3DDC97','#46237A','#256EFF','#1446a0','#99D17B','#3C3C3B','#B4436C','#9D8DF1','#5FAD56','#4D9078','#4D9078','#645DD7','#B3FFFC'];
     const index = Math.floor(Math.random() * (colorArray.length - 0 + 1) + 0)
@@ -235,6 +288,7 @@ function Sol() {
   return (
     <div id="main-wrapper">
       <div>
+        <p><b>Solana On-Exchange Balances:</b><br /></p>
         <Scatter options={options} data={data} />
       </div>
       <div>
@@ -251,11 +305,18 @@ function Sol() {
         {renderTable()}
         <br />
       </div>
+      <div id="inflow-wrapper">
+        <br />
+        <br />
+        <p><b>Total Exchange Inflows(+ve)/Outflows(-ve) by Date:</b></p>
+        <Bar options={inflowChartOptions} data={inflowChartData} />
+      </div>
       <div id="exch-table-wrapper">
         <br />
         <p><b>On-Exchange Balance Summary (descending):</b></p>
         {renderExchangeTable()}
       </div>
+      <div id="filler" />
     </div>
   );
 }

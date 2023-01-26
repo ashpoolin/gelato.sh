@@ -15,13 +15,23 @@
 }
 
 #table-wrapper {
+  padding-top: 50px;
+  padding-bottom: 50px;
     height: 300px;
 }
 
 #exch-table-wrapper {
   height: 300px;
   padding-top: 50px;
+  /* padding-bottom: 100px; */
   /* clear: both; */
+}
+
+#inflow-wrapper {
+  padding-top: 50px;
+  padding-bottom: 50px;
+  position: relative;
+  vertical-align: middle;
 }
 
 .row {
