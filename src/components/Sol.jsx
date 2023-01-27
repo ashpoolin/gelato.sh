@@ -224,12 +224,12 @@ const inflowChartData = {
     {
       label: 'Net Inflow/Outflow',
       data: netInflowData,
-      backgroundColor: '#FF7F50',
+      backgroundColor: '#FCFCFC',
     },
     {
       label: 'Inflows',
       data: inData,
-      backgroundColor: '#FCFCFC',
+      backgroundColor: '#FF7F50',
     },
     {
       label: 'Outflows',
