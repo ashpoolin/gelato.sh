@@ -17,30 +17,28 @@
 #table-wrapper {
   padding-top: 50px;
   padding-bottom: 50px;
-    height: 300px;
-}
-
-#exch-table-wrapper {
-  height: 300px;
-  padding-top: 50px;
-  /* padding-bottom: 100px; */
-  /* clear: both; */
-}
-
-#inflow-wrapper {
-  padding-top: 50px;
-  padding-bottom: 50px;
-  position: relative;
-  vertical-align: middle;
+  height: 500px;
 }
 
 .row {
     display: flex;
   }
   
-  .column-left {
-    flex: 65%;
-  }
-  .column-right {
-    flex: 35%;
-  }
+.column-left {
+  flex: 50%;
+  padding-left: 20px;
+  padding-right: 20px;
+  height: 800px
+}
+.column-right {
+  padding-left: 20px;
+  padding-right: 20px;
+  flex: 50%;
+  height: 800px
+}
+.center {
+  position: relative;
+  left: 15%;
+  right:15%;
+  width: 70%;
+}

@@ -14,7 +14,7 @@ import {
   ArcElement
 } from 'chart.js';
 
-import { Scatter, Bar } from 'react-chartjs-2';
+import { Scatter, Bar, Pie, Doughnut } from 'react-chartjs-2';
 import { TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
 const URL = process.env.REACT_APP_API_URL;
@@ -112,7 +112,6 @@ function Sol() {
   ]);
   const [eventData, setEventData] = useState([]);
   const [balanceData, setBalanceData] = useState([]); 
-
   const exchangeLabelMap = new Map();
   exchangeLabelMap.set('5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9','Binance_hot');	
   exchangeLabelMap.set('9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM','binance_cold');	
@@ -222,33 +221,37 @@ const inflowChartData = {
   labels,
   datasets: [
     {
-      label: 'Net Inflow/Outflow',
-      data: netInflowData,
-      backgroundColor: '#FCFCFC',
-    },
-    {
       label: 'Inflows',
       data: inData,
       backgroundColor: '#FF7F50',
+      stack: 'stack1'
     },
     {
       label: 'Outflows',
       data: outData,
       backgroundColor: '#3DDC97',
+      stack: 'stack1'
+    },
+    {
+      label: 'Net Inflow/Outflow',
+      data: netInflowData,
+      backgroundColor: '#FCFCFC',
+      stack: 'stack0'
     },
   ],
 };
 
-  function getRandomColor() {
-    const colorArray = ['#FF7F50','#FCFCFC','#3DDC97','#46237A','#256EFF','#1446a0','#99D17B','#3C3C3B','#B4436C','#9D8DF1','#5FAD56','#4D9078','#4D9078','#645DD7','#B3FFFC'];
-    const index = Math.floor(Math.random() * (colorArray.length - 0 + 1) + 0)
+  function getRandomColor(index) {
+    const colorArray = ['#FF7F50','#FCFCFC','#3DDC97','#46237A','#256EFF','#1446a0','#99D17B','#3C3C3B','#B4436C','#9D8DF1','#5FAD56','#4D9078','#645DD7','#B3FFFC'];
+    // const index = Math.floor(Math.random() * (colorArray.length - 0 + 1) + 0)
     return colorArray[index];
   }
 
+  let colorIndex = 0;
   const data = {
     datasets: 
       exchangeData.map(exchange => {
-        let color = getRandomColor();
+        let color = getRandomColor(colorIndex);
         let myObject = {};
         myObject.label = exchange[0];
         myObject.data = exchange[1];
@@ -259,13 +262,14 @@ const inflowChartData = {
         myObject.tension = 0;
         myObject.showLine = true;
         myObject.backgroundColor = `${color}`;
+        colorIndex += 1;
         return myObject
     })
   }
 
   function renderTable() {
     return (
-      <TableContainer sx={{height: 250}}>
+      <TableContainer sx={{height: 450}}>
         <Table sx={{height: "max-content"}}   options={{filtering: true}}>
         <TableBody>
           <TableRow>
@@ -286,7 +290,7 @@ const inflowChartData = {
 
   function renderExchangeTable() {
     return (
-      <TableContainer sx={{height: 250}}>
+      <TableContainer sx={{height: 450}}>
         <Table sx={{height: "max-content"}}   options={{filtering: true}}>
         <TableBody>
           <TableRow>
@@ -302,36 +306,70 @@ const inflowChartData = {
     );
   }
 
+  const pieData = {
+    labels: balanceData.map(row => row.label),
+    datasets: [
+      {
+        label: '% Share',
+        data: balanceData.map(row => row.pct_share),
+        backgroundColor: ['#3DDC97','#FF7F50', '#FCFCFC','#46237A','#256EFF','#1446a0','#99D17B','#3C3C3B','#B4436C','#9D8DF1','#5FAD56','#4D9078','#4D9078','#645DD7','#B3FFFC'],
+        borderColor: ['#15171b'],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+      },
+      title: {
+        display: true,
+        text: 'Exchange % Share (SOL)',
+      },
+    },
+  }
+
   return (
     <div id="main-wrapper">
       <div>
-        <p><b>Solana On-Exchange Balances:</b><br /></p>
+        <p><b>Solana On-Exchange Balances</b><br /></p>
         <Scatter options={options} data={data} />
       </div>
       <div>
         <p><br/>
-          <b>Why exchange inflows?</b><br />
+          <b>Why watch exchange balances?</b><br />
           Tracking coin balances on exchanges can give a clue into what's happening with token 
-          distribution. While not a guarantee, large inflows may foreshadow ensuing volatility and selling, while outflows
-          could signify a buyer has been accumulating. 
+          distribution. There are various reasons that coins move to and from an exchange, and nothing is definite. 
+          But large inflows may foreshadow ensuing volatility and selling, while outflows could signify a buyer has been accumulating. 
         </p>
       </div>
       <div id="table-wrapper">
-        <br/>
-        <p><b>Recent Inflow/Outflows (&gt;10k SOL):</b></p>
+        {/* <br/> */}
+        <p><b>Recent Inflow/Outflows (&gt;10k SOL)</b></p>
         {renderTable()}
         <br />
       </div>
       <div id="inflow-wrapper">
         <br />
         <br />
-        <p><b>Total Exchange Inflows(+ve)/Outflows(-ve) by Date:</b></p>
+        <p><b>Total Exchange Inflows(+ve)/Outflows(-ve) by Date</b></p>
         <Bar options={inflowChartOptions} data={inflowChartData} />
       </div>
-      <div id="exch-table-wrapper">
+
+      <div><p><b>On-Exchange Balance Summary</b></p></div>
+      <div class="table-wrapper">
         <br />
-        <p><b>On-Exchange Balance Summary (descending):</b></p>
+        <p><b>Balances (Descending)</b></p>
         {renderExchangeTable()}
+      </div>
+      <div class="center">
+        <br />
+        <p><b>Percent Share</b></p>
+          <Doughnut options={pieOptions} data={pieData} />
       </div>
       {/* {inData.toString()} */}
       <div id="filler" />
