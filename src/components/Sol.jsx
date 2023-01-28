@@ -14,8 +14,11 @@ import {
   ArcElement
 } from 'chart.js';
 
+// import chart devices
 import { Scatter, Bar, Pie, Doughnut } from 'react-chartjs-2';
-import { TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
+
+// add filtering to tables
+import { DataGrid, GridToolbar, GridColDef } from '@mui/x-data-grid';
 
 const URL = process.env.REACT_APP_API_URL;
 // const URL = "http://localhost:3001"
@@ -73,10 +76,6 @@ export const options = {
               }
           }
       },
-      scaleLabel: {
-          display: true,
-          labelString: 'Mean Time Between Stock-Out'
-      }
     }
 }
 };
@@ -95,6 +94,7 @@ export const inflowChartOptions = {
 };
 
 function Sol() {
+
   const [exchangeData, setExchangeData] = useState([]);
   const [exchangeLookup, setExchangeLookup] = useState([
     ['Binance_hot','5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9'],	
@@ -110,7 +110,6 @@ function Sol() {
     ['kraken','FWznbcNXWQuHTawe9RxvQ2LdCENssh12dsznf4RiouN5'],	
     ['mexc','ASTyfSima4LLAdDgoFGkgqoKowG1LZFDr9fAQrg7iaJZ'],	
   ]);
-  const [eventData, setEventData] = useState([]);
   const [balanceData, setBalanceData] = useState([]); 
   const exchangeLabelMap = new Map();
   exchangeLabelMap.set('5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9','Binance_hot');	
@@ -126,6 +125,10 @@ function Sol() {
   exchangeLabelMap.set('FWznbcNXWQuHTawe9RxvQ2LdCENssh12dsznf4RiouN5','kraken');	
   exchangeLabelMap.set('ASTyfSima4LLAdDgoFGkgqoKowG1LZFDr9fAQrg7iaJZ','mexc');
 
+  const [dataGrid, setDataGrid] = useState([]); 
+  const [eventGrid, setEventGrid] = useState([]); 
+
+  // calls to collect data from the postgres API (gelato.express)
   useEffect(() => {
     getExchangeData();
   }, []);
@@ -164,9 +167,29 @@ function Sol() {
       })
       .then(data => {
         const dataObj = JSON.parse(data);
-        const dataArray = [];
-        dataObj.map(row => dataArray.push([row.dt, row.slot, row.owner, row.sol, row.delta]));
-        setEventData(dataArray);
+        const dt = [];
+        const slot = [];
+        const owner = [];
+        const sol = [];
+        const delta = [];
+        dataObj.map(line => dt.push(line.dt));
+        dataObj.map(line => slot.push(line.slot));
+        dataObj.map(line => owner.push(line.owner));
+        dataObj.map(line => sol.push(line.sol));
+        dataObj.map(line => delta.push(line.delta));
+
+        const grid = dt.map((time, index) => {
+          let myObject = {};
+          myObject.id = index;
+          myObject.dt = time;
+          myObject.slot = slot[index];
+          myObject.owner = owner[index];
+          myObject.label = exchangeLabelMap.get(owner[index]);
+          myObject.sol = sol[index];
+          myObject.delta = delta[index];
+          return myObject
+        });
+        setEventGrid(grid);
       });
   }
 
@@ -181,8 +204,59 @@ function Sol() {
       .then(data => {
         const dataObj = JSON.parse(data);
         setBalanceData(dataObj);
+
+        const label = [];
+        const address = [];
+        const balance = [];
+        const pct_share = [];
+        dataObj.map(line => label.push(line.label));
+        dataObj.map(line => address.push(line.owner));
+        dataObj.map(line => balance.push(line.latest_balance));
+        dataObj.map(line => pct_share.push(line.pct_share));
+
+        const grid = label.map((label_n, index) => {
+          let myObject = {};
+          myObject.id = index;
+          myObject.label = label_n;
+          myObject.address = address[index];
+          myObject.balance = balance[index];
+          myObject.pct_share = pct_share[index];
+          return myObject
+        });
+        setDataGrid(grid);
+
       });
   }
+
+  // These are the column fields for the MUI grid tables 
+  const eventGridColumns = [
+    { field: 'dt', headerName: 'Timestamp', GridColDef: 'flex', flex: 1 },
+    { field: 'slot', headerName: 'Slot', GridColDef: 'flex', flex: 1 },
+    { field: 'label', headerName: 'Label', GridColDef: 'flex', flex: 1 },
+    { 
+      field: 'owner', 
+      headerName: 'Address', 
+      GridColDef: 'flex', flex: 1,
+      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.owner + "?cluster=mainnet-qn1"}>{params.row.owner.slice(0,4)}...{params.row.owner.slice(params.row.owner.length - 4)}</a>,
+    },
+    { field: 'sol', headerName: 'Balance (SOL)', GridColDef: 'flex', flex: 1 },
+    { field: 'delta', headerName: 'Balance Change (SOL)', GridColDef: 'flex', flex: 1 },
+  ];
+
+  const balanceGridColumns = [
+    { field: 'label', headerName: 'Exchange', GridColDef: 'flex', flex: 1 },
+    { 
+      field: 'address', 
+      headerName: 'Address', 
+      GridColDef: 'flex', flex: 1,
+      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.address + "?cluster=mainnet-qn1"}>{params.row.address.slice(0,4)}...{params.row.address.slice(params.row.address.length - 4)}</a>,
+    },
+    { field: 'balance', headerName: 'Balance', GridColDef: 'flex', flex: 1 },
+    { field: 'pct_share', headerName: '% Share', GridColDef: 'flex', flex: 1 },
+  ];
+
+
+
 
 // NET INFLOW CHART DATA PULL AND CONFIG
 const [inflowData, setInflowData] = useState([]);
@@ -267,45 +341,6 @@ const inflowChartData = {
     })
   }
 
-  function renderTable() {
-    return (
-      <TableContainer sx={{height: 450}}>
-        <Table sx={{height: "max-content"}}   options={{filtering: true}}>
-        <TableBody>
-          <TableRow>
-            <TableCell><b>date</b></TableCell>
-            <TableCell><b>slot</b></TableCell>
-            <TableCell><b>exchange</b></TableCell>
-            <TableCell><b>owner</b></TableCell>
-            <TableCell><b>balance</b></TableCell>
-            <TableCell><b>change (%)</b></TableCell>
-            <TableCell><b>change (SOL)</b></TableCell>
-          </TableRow>
-        {eventData.map(row => <TableRow><TableCell>{row[0]}</TableCell><TableCell>{row[1]}</TableCell><TableCell>{exchangeLabelMap.get(row[2])}</TableCell><TableCell><a href={"https://solana.fm/address/" + row[2] + "?cluster=mainnet-qn1"}>{row[2].slice(0,4)}...{row[2].slice(row[2].length - 4)}</a></TableCell><TableCell>{row[3]}</TableCell><TableCell>{Math.round(row[4] / row[3] * 100 * 100) / 100}</TableCell><TableCell>{(Math.abs(row[4]) > 100000) ? row[4] + " " + String.fromCodePoint("0x1F6A9"): row[4]}</TableCell></TableRow>)}
-        </TableBody>
-      </Table>
-    </TableContainer>
-    );
-  }
-
-  function renderExchangeTable() {
-    return (
-      <TableContainer sx={{height: 450}}>
-        <Table sx={{height: "max-content"}}   options={{filtering: true}}>
-        <TableBody>
-          <TableRow>
-            <TableCell><b>exchange</b></TableCell>
-            <TableCell><b>address</b></TableCell>
-            <TableCell><b>balance</b></TableCell>
-            <TableCell><b>share of total (%)</b></TableCell>
-          </TableRow>
-        {balanceData.map(row => <TableRow><TableCell>{row.label}</TableCell><TableCell><a href={"https://solana.fm/address/" + row.owner + "?cluster=mainnet-qn1"}>{row.owner.slice(0,4)}...{row.owner.slice(row.owner.length - 4)}</a></TableCell><TableCell>{row.latest_balance}</TableCell><TableCell>{Math.round(row.pct_share * 100) / 100}</TableCell></TableRow>)}
-        </TableBody>
-      </Table>
-    </TableContainer>
-    );
-  }
-
   const pieData = {
     labels: balanceData.map(row => row.label),
     datasets: [
@@ -348,9 +383,8 @@ const inflowChartData = {
         </p>
       </div>
       <div id="table-wrapper">
-        {/* <br/> */}
         <p><b>Recent Inflow/Outflows (&gt;10k SOL)</b></p>
-        {renderTable()}
+        <DataGrid rows={eventGrid} columns={eventGridColumns} components={{ Toolbar: GridToolbar }} />
         <br />
       </div>
       <div id="inflow-wrapper">
@@ -359,19 +393,16 @@ const inflowChartData = {
         <p><b>Total Exchange Inflows(+ve)/Outflows(-ve) by Date</b></p>
         <Bar options={inflowChartOptions} data={inflowChartData} />
       </div>
-
-      <div><p><b>On-Exchange Balance Summary</b></p></div>
-      <div class="table-wrapper">
-        <br />
-        <p><b>Balances (Descending)</b></p>
-        {renderExchangeTable()}
+      <div><br/><p><b>On-Exchange Balance Summary</b></p></div>
+      <div class="center" style={{ height: 400 }}>
+        {/* <br /> */}
+        <DataGrid rows={dataGrid} columns={balanceGridColumns} components={{ Toolbar: GridToolbar }} />
       </div>
       <div class="center">
         <br />
         <p><b>Percent Share</b></p>
           <Doughnut options={pieOptions} data={pieData} />
       </div>
-      {/* {inData.toString()} */}
       <div id="filler" />
     </div>
   );
