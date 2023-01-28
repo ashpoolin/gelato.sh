@@ -240,7 +240,13 @@ function Sol() {
       renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.owner + "?cluster=mainnet-qn1"}>{params.row.owner.slice(0,4)}...{params.row.owner.slice(params.row.owner.length - 4)}</a>,
     },
     { field: 'sol', headerName: 'Balance (SOL)', GridColDef: 'flex', flex: 1 },
-    { field: 'delta', headerName: 'Balance Change (SOL)', GridColDef: 'flex', flex: 1 },
+    { 
+      field: 'delta', 
+      headerName: 'Balance Change (SOL)', 
+      GridColDef: 'flex', 
+      flex: 1,
+      renderCell: (params) => (Math.abs(params.row.delta) > 100000) ? params.row.delta + " " + String.fromCodePoint("0x1F6A9"): params.row.delta,
+    },
   ];
 
   const balanceGridColumns = [
