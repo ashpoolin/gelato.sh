@@ -258,7 +258,13 @@ function Sol() {
       renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.address + "?cluster=mainnet-qn1"}>{params.row.address.slice(0,4)}...{params.row.address.slice(params.row.address.length - 4)}</a>,
     },
     { field: 'balance', headerName: 'Balance', GridColDef: 'flex', flex: 1 },
-    { field: 'pct_share', headerName: '% Share', GridColDef: 'flex', flex: 1 },
+    { 
+      field: 'pct_share', 
+      headerName: '% Share', 
+      GridColDef: 'flex', 
+      flex: 1,
+      renderCell: (params) => Math.round(params.row.pct_share * 100) / 100,
+    },
   ];
 
 
