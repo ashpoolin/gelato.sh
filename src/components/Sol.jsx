@@ -127,6 +127,7 @@ function Sol() {
 
   const [dataGrid, setDataGrid] = useState([]); 
   const [eventGrid, setEventGrid] = useState([]); 
+  const [webhookGrid, setWebhookGrid] = useState([]); 
 
   // calls to collect data from the postgres API (gelato.express)
   useEffect(() => {
@@ -194,6 +195,43 @@ function Sol() {
   }
 
   useEffect(() => {
+    getWebhookEvents();
+  }, []);
+  function getWebhookEvents() {
+      fetch(`${URL}/whevents`)
+      .then(response => {
+        return response.text();
+      })
+      .then(data => {
+        const dataObj = JSON.parse(data);
+        const dt = [];
+        const signature = [];
+        const source = [];
+        const destination = [];
+        const amount = [];
+        dataObj.map(line => dt.push(line.dt));
+        dataObj.map(line => signature.push(line.signature));
+        dataObj.map(line => source.push(line.source));
+        dataObj.map(line => destination.push(line.destination));
+        dataObj.map(line => amount.push(line.amount));
+
+        const grid = dt.map((time, index) => {
+          let myObject = {};
+          myObject.id = index;
+          myObject.dt = time;
+          myObject.signature = signature[index];
+          myObject.source = source[index];
+          myObject.label_src = exchangeLabelMap.get(source[index]) || '-';
+          myObject.destination = destination[index];
+          myObject.label_dest = exchangeLabelMap.get(destination[index]) || '-';
+          myObject.amount = amount[index];
+          return myObject
+        });
+        setWebhookGrid(grid);
+      });
+  }
+
+  useEffect(() => {
     getExchangeBalances();
   }, []);
   function getExchangeBalances() {
@@ -248,6 +286,41 @@ function Sol() {
       renderCell: (params) => (Math.abs(params.row.delta) > 100000) ? params.row.delta + " " + String.fromCodePoint("0x1F6A9"): params.row.delta,
     },
   ];
+
+  const webhookGridColumns = [
+    { field: 'dt', headerName: 'Timestamp', GridColDef: 'flex', flex: 1 },
+    { 
+      field: 'signature', 
+      headerName: 'Signature', 
+      GridColDef: 'flex', 
+      flex: 1, 
+      renderCell: (params) => <a href={"https://solana.fm/tx/" + params.row.signature + "?cluster=mainnet-qn1"}>{params.row.signature.slice(0,4)}...{params.row.signature.slice(params.row.signature.length - 4)}</a>,
+    
+    },
+    { field: 'label_src', headerName: 'From', GridColDef: 'flex', flex: 1 },
+    { 
+      field: 'source', 
+      headerName: 'From Address', 
+      GridColDef: 'flex', flex: 1,
+      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.source + "?cluster=mainnet-qn1"}>{params.row.source.slice(0,4)}...{params.row.source.slice(params.row.source.length - 4)}</a>,
+    },
+    { field: 'label_dest', headerName: 'To', GridColDef: 'flex', flex: 1 },
+    { 
+      field: 'destination', 
+      headerName: 'To Address', 
+      GridColDef: 'flex', flex: 1,
+      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.destination + "?cluster=mainnet-qn1"}>{params.row.destination.slice(0,4)}...{params.row.destination.slice(params.row.destination.length - 4)}</a>,
+    },
+    { 
+      field: 'amount', 
+      headerName: 'Amount (SOL)', 
+      GridColDef: 'flex', 
+      flex: 1,
+      renderCell: (params) => (Math.abs(params.row.amount) > 100000) ? Math.floor(params.row.amount) + " " + String.fromCodePoint("0x1F6A9"): Math.floor(params.row.amount),
+    },
+  ];
+
+
 
   const balanceGridColumns = [
     { field: 'label', headerName: 'Exchange', GridColDef: 'flex', flex: 1 },
@@ -396,7 +469,8 @@ const inflowChartData = {
       </div>
       <div id="table-wrapper">
         <p><b>Recent Inflow/Outflows (&gt;10k SOL)</b></p>
-        <DataGrid rows={eventGrid} columns={eventGridColumns} components={{ Toolbar: GridToolbar }} />
+        <DataGrid rows={webhookGrid} columns={webhookGridColumns} components={{ Toolbar: GridToolbar }} />
+        {/* <DataGrid rows={eventGrid} columns={eventGridColumns} components={{ Toolbar: GridToolbar }} /> */}
         <br />
       </div>
       <div id="inflow-wrapper">
