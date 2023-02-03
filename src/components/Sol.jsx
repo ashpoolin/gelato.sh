@@ -472,7 +472,7 @@ const inflowChartData = {
         </p>
       </div>
       <div id="table-wrapper">
-        <p><b>Recent Inflow/Outflows (&gt;10k SOL)</b></p>
+        <p><b>Whale Transfer Event Log (&gt;10k SOL)</b></p>
         <DataGrid rows={webhookGrid} columns={webhookGridColumns} components={{ Toolbar: GridToolbar }} />
         {/* <DataGrid rows={eventGrid} columns={eventGridColumns} components={{ Toolbar: GridToolbar }} /> */}
         <br />
