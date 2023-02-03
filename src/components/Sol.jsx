@@ -206,13 +206,17 @@ function Sol() {
         const dataObj = JSON.parse(data);
         const dt = [];
         const signature = [];
-        const source = [];
-        const destination = [];
+        const from = [];
+        const from_label = [];
+        const to = [];
+        const to_label = [];
         const amount = [];
         dataObj.map(line => dt.push(line.dt));
         dataObj.map(line => signature.push(line.signature));
-        dataObj.map(line => source.push(line.source));
-        dataObj.map(line => destination.push(line.destination));
+        dataObj.map(line => from.push(line.from));
+        dataObj.map(line => from_label.push(line.from_label));
+        dataObj.map(line => to.push(line.to));
+        dataObj.map(line => to_label.push(line.to_label));
         dataObj.map(line => amount.push(line.amount));
 
         const grid = dt.map((time, index) => {
@@ -220,10 +224,10 @@ function Sol() {
           myObject.id = index;
           myObject.dt = time;
           myObject.signature = signature[index];
-          myObject.source = source[index];
-          myObject.label_src = exchangeLabelMap.get(source[index]) || '-';
-          myObject.destination = destination[index];
-          myObject.label_dest = exchangeLabelMap.get(destination[index]) || '-';
+          myObject.from = from[index];
+          myObject.from_label = from_label[index] || '-';
+          myObject.to = to[index];
+          myObject.to_label = to_label[index] || '-';
           myObject.amount = amount[index];
           return myObject
         });
@@ -297,19 +301,19 @@ function Sol() {
       renderCell: (params) => <a href={"https://solana.fm/tx/" + params.row.signature + "?cluster=mainnet-qn1"}>{params.row.signature.slice(0,4)}...{params.row.signature.slice(params.row.signature.length - 4)}</a>,
     
     },
-    { field: 'label_src', headerName: 'From', GridColDef: 'flex', flex: 1 },
+    { field: 'from_label', headerName: 'From', GridColDef: 'flex', flex: 1 },
     { 
-      field: 'source', 
+      field: 'from', 
       headerName: 'From Address', 
       GridColDef: 'flex', flex: 1,
-      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.source + "?cluster=mainnet-qn1"}>{params.row.source.slice(0,4)}...{params.row.source.slice(params.row.source.length - 4)}</a>,
+      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.from + "?cluster=mainnet-qn1"}>{params.row.from.slice(0,4)}...{params.row.from.slice(params.row.from.length - 4)}</a>,
     },
-    { field: 'label_dest', headerName: 'To', GridColDef: 'flex', flex: 1 },
+    { field: 'to_label', headerName: 'To', GridColDef: 'flex', flex: 1 },
     { 
-      field: 'destination', 
+      field: 'to', 
       headerName: 'To Address', 
       GridColDef: 'flex', flex: 1,
-      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.destination + "?cluster=mainnet-qn1"}>{params.row.destination.slice(0,4)}...{params.row.destination.slice(params.row.destination.length - 4)}</a>,
+      renderCell: (params) => <a href={"https://solana.fm/address/" + params.row.to + "?cluster=mainnet-qn1"}>{params.row.to.slice(0,4)}...{params.row.to.slice(params.row.to.length - 4)}</a>,
     },
     { 
       field: 'amount', 
