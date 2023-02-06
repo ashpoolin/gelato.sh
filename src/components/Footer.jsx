@@ -1,24 +1,25 @@
-import './Footer.css';
-import { Link } from 'react-router-dom';
+import { GitHub, Twitter } from "@mui/icons-material";
+import { Button, IconButton } from "@mui/material";
+import { Stack } from "@mui/system";
+
 function Footer() {
-    return (
-        <div className="footer">
-            <ul class="list-inline">
-                <li>
-                    &#169; 2023
-                </li>
-                <li>
-                    <Link to="/">gelato.sh</Link>
-                </li>
-                <li>
-                    <a href="https://github.com/ashpoolin/gelato.sh">github</a>
-                </li>
-                <li>
-                    <a href="https://twitter.com/solanobahn">twitter</a>
-                </li>
-            </ul>
-        </div>
-    );
+  return (
+    <Stack
+      direction={"row"}
+      alignItems={"center"}
+      justifyContent={"center"}
+      spacing={1}
+      sx={{ width: "100%", padding: 1 }}
+    >
+      <Button href="/">&#169; {new Date().getFullYear()} gelato.sh</Button>
+      <IconButton href="https://github.com/ashpoolin/gelato.sh">
+        <GitHub />
+      </IconButton>
+      <IconButton href="https://twitter.com/solanobahn">
+        <Twitter />
+      </IconButton>
+    </Stack>
+  );
 }
 
 export default Footer;
