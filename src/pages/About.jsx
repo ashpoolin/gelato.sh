@@ -39,7 +39,6 @@ function About() {
         leading you through hand-curated data to inform your path through
         Solana's neon forest.
       </Typography>
-      <Footer />
     </Stack>
   );
 }
