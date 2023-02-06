@@ -1,33 +1,44 @@
-import './Header.css';
-import { Link } from 'react-router-dom';
-import {ThemeProvider, Button, createTheme} from '@mui/material';
-import logo from './Gelato_Logo-04.png';
-const { palette } = createTheme();
-const createColor = (mainColor) => palette.augmentColor({ color: { main: mainColor } });
-const theme = createTheme({
-  palette: {
-    teal: createColor('#077c86'),
-    mint: createColor('#3DDC97'),
-    coral: createColor('#ff7f50'),
-    white: createColor('#FFF')
-  },
-});
+import { Link } from "react-router-dom";
+import {
+  Button,
+  AppBar,
+  Container,
+  Toolbar,
+  Typography,
+  Stack,
+} from "@mui/material";
+import logo from "../assets/gelato-logo.png";
 
 function Header() {
   return (
-    <ThemeProvider theme={theme}>
-
-    <div className="Header">
-      <ul class="list-inline">
-        <li><img src={logo} className="HeaderLogo" alt="logo" /></li>
-        <li><Button color='mint' variant="outlined" style={{borderRadius: 0}}><Link to="/">HOME</Link></Button></li>
-        <li><Button color='mint' variant="outlined" style={{borderRadius: 0}}><Link to="/sol">SOL</Link></Button></li>
-        <li><Button color='mint' variant="outlined" style={{borderRadius: 0}}><Link to="/spl">SPL</Link></Button></li>
-        <li><Button color='mint' variant="outlined" style={{borderRadius: 0}}><Link to="/research">Research</Link></Button></li>
-        <li><Button color='mint' variant="outlined" style={{borderRadius: 0}}><Link to="/about">ABOUT</Link></Button></li>
-      </ul>
-    </div>
-    </ThemeProvider>
+    <Stack
+      direction="row"
+      alignItems={"center"}
+      justifyContent={"space-between"}
+      sx={{ width: "100%", marginY: 2 }}
+    >
+      <Stack direction={"row"} alignItems={"center"} spacing={2}>
+        <img src={logo} width={60} height={60} alt="gelato.sh" />
+        <Typography variant="h6">gelato.sh</Typography>
+      </Stack>
+      <Stack direction={"row"} alignItems={"center"} spacing={1}>
+        <Button href="/" color="secondary">
+          HOME
+        </Button>
+        <Button href="/sol" color="secondary">
+          SOL
+        </Button>
+        <Button href="/spl" color="secondary">
+          SPL
+        </Button>
+        <Button href="/research" color="secondary">
+          Research
+        </Button>
+        <Button href="/about" color="secondary">
+          ABOUT
+        </Button>
+      </Stack>
+    </Stack>
   );
 }
 
