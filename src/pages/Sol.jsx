@@ -18,7 +18,19 @@ import { Scatter, Bar, Doughnut } from "react-chartjs-2";
 
 // add filtering to tables
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { Stack, Tabs, Tab, Paper, Typography, Divider } from "@mui/material";
+import { 
+  Link, 
+  Stack, 
+  Tabs, 
+  Tab, 
+  Paper, 
+  Typography, 
+  Divider, 
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box } from "@mui/system";
 
 const URL = process.env.REACT_APP_API_URL;
@@ -156,7 +168,6 @@ function Sol() {
   exchangeLabelMap.set("ASTyfSima4LLAdDgoFGkgqoKowG1LZFDr9fAQrg7iaJZ", "mexc");
 
   const [dataGrid, setDataGrid] = useState([]);
-  const [eventGrid, setEventGrid] = useState([]);
   const [webhookGrid, setWebhookGrid] = useState([]);
 
   // calls to collect data from the postgres API (gelato.express)
@@ -189,43 +200,6 @@ function Sol() {
           ]);
         });
     });
-  }
-
-  useEffect(() => {
-    getLatestEvents();
-  }, []);
-
-  function getLatestEvents() {
-    fetch(`${URL}/events`)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        const dataObj = JSON.parse(data);
-        const dt = [];
-        const slot = [];
-        const owner = [];
-        const sol = [];
-        const delta = [];
-        dataObj.map((line) => dt.push(line.dt));
-        dataObj.map((line) => slot.push(line.slot));
-        dataObj.map((line) => owner.push(line.owner));
-        dataObj.map((line) => sol.push(line.sol));
-        dataObj.map((line) => delta.push(line.delta));
-
-        const grid = dt.map((time, index) => {
-          let myObject = {};
-          myObject.id = index;
-          myObject.dt = time;
-          myObject.slot = slot[index];
-          myObject.owner = owner[index];
-          myObject.label = exchangeLabelMap.get(owner[index]);
-          myObject.sol = sol[index];
-          myObject.delta = delta[index];
-          return myObject;
-        });
-        setEventGrid(grid);
-      });
   }
 
   useEffect(() => {
@@ -303,42 +277,6 @@ function Sol() {
       });
   }
 
-  // These are the column fields for the MUI grid tables
-  const eventGridColumns = [
-    { field: "dt", headerName: "Timestamp", GridColDef: "flex", flex: 1 },
-    { field: "slot", headerName: "Slot", GridColDef: "flex", flex: 1 },
-    { field: "label", headerName: "Label", GridColDef: "flex", flex: 1 },
-    {
-      field: "owner",
-      headerName: "Address",
-      GridColDef: "flex",
-      flex: 1,
-      renderCell: (params) => (
-        <a
-          href={
-            "https://solana.fm/address/" +
-            params.row.owner +
-            "?cluster=mainnet-qn1"
-          }
-        >
-          {params.row.owner.slice(0, 4)}...
-          {params.row.owner.slice(params.row.owner.length - 4)}
-        </a>
-      ),
-    },
-    { field: "sol", headerName: "Balance (SOL)", GridColDef: "flex", flex: 1 },
-    {
-      field: "delta",
-      headerName: "Balance Change (SOL)",
-      GridColDef: "flex",
-      flex: 1,
-      renderCell: (params) =>
-        Math.abs(params.row.delta) > 100000
-          ? params.row.delta + " " + String.fromCodePoint("0x1F6A9")
-          : params.row.delta,
-    },
-  ];
-
   const webhookGridColumns = [
     { field: "dt", headerName: "Timestamp", GridColDef: "flex", flex: 1 },
     {
@@ -347,7 +285,8 @@ function Sol() {
       GridColDef: "flex",
       flex: 1,
       renderCell: (params) => (
-        <a
+        <Link
+          color="secondary"
           href={
             "https://solana.fm/tx/" +
             params.row.signature +
@@ -356,7 +295,7 @@ function Sol() {
         >
           {params.row.signature.slice(0, 4)}...
           {params.row.signature.slice(params.row.signature.length - 4)}
-        </a>
+        </Link>
       ),
     },
     { field: "from_label", headerName: "From", GridColDef: "flex", flex: 1 },
@@ -366,7 +305,8 @@ function Sol() {
       GridColDef: "flex",
       flex: 1,
       renderCell: (params) => (
-        <a
+        <Link
+          color="secondary"
           href={
             "https://solana.fm/address/" +
             params.row.from +
@@ -375,7 +315,7 @@ function Sol() {
         >
           {params.row.from.slice(0, 4)}...
           {params.row.from.slice(params.row.from.length - 4)}
-        </a>
+        </Link>
       ),
     },
     { field: "to_label", headerName: "To", GridColDef: "flex", flex: 1 },
@@ -385,7 +325,8 @@ function Sol() {
       GridColDef: "flex",
       flex: 1,
       renderCell: (params) => (
-        <a
+        <Link
+          color="secondary"
           href={
             "https://solana.fm/address/" +
             params.row.to +
@@ -394,7 +335,7 @@ function Sol() {
         >
           {params.row.to.slice(0, 4)}...
           {params.row.to.slice(params.row.to.length - 4)}
-        </a>
+        </Link>
       ),
     },
     {
@@ -419,7 +360,8 @@ function Sol() {
       GridColDef: "flex",
       flex: 1,
       renderCell: (params) => (
-        <a
+        <Link
+          color="secondary"
           href={
             "https://solana.fm/address/" +
             params.row.address +
@@ -428,7 +370,7 @@ function Sol() {
         >
           {params.row.address.slice(0, 4)}...
           {params.row.address.slice(params.row.address.length - 4)}
-        </a>
+        </Link>
       ),
     },
     { field: "balance", headerName: "Balance", GridColDef: "flex", flex: 1 },
@@ -600,7 +542,8 @@ function Sol() {
             margin: 3,
             textAlign: "center",
             width: "100%",
-            minHeight: "70vh",
+            minHeight: "100%",
+            // minHeight: "70vh",
           }}
         >
           <Typography variant="h5">Solana On-Exchange Balances</Typography>
@@ -608,14 +551,26 @@ function Sol() {
           <Scatter options={options} data={data} />
           <Divider sx={{ marginY: 2 }} />
           <Box sx={{ paddingY: 3 }}>
-            <Typography variant="h6">Why watch exchange balances?</Typography>
-            <Typography>
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>Why watch exchange balances?</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
               Tracking coin balances on exchanges can give a clue into what's
               happening with token distribution. There are various reasons that
               coins move to and from an exchange, and nothing is definite. But
               large inflows may foreshadow ensuing volatility and selling, while
               outflows could signify a buyer has been accumulating.
-            </Typography>
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
           </Box>
         </Paper>
       )}
@@ -627,19 +582,22 @@ function Sol() {
             margin: 3,
             textAlign: "center",
             width: "100%",
-            minHeight: "70vh",
+            minHeight: "100%",
           }}
         >
+          <div style={{ height: '100%' }}>
           <Typography variant="h5">
             Whale Transfer Event Log (&gt;10k SOL)
-          </Typography>
+         </Typography>
           <Divider sx={{ marginY: 2 }} />
           <DataGrid
+            sx={{ minHeight: '600px' }}
             rows={webhookGrid}
             columns={webhookGridColumns}
             components={{ Toolbar: GridToolbar }}
           />
           <Divider sx={{ marginY: 2 }} />
+          </div>
         </Paper>
       )}
 
@@ -650,7 +608,7 @@ function Sol() {
             margin: 3,
             textAlign: "center",
             width: "100%",
-            minHeight: "70vh",
+            minHeight: "100%",
           }}
         >
           <Typography variant="h5">
@@ -669,12 +627,13 @@ function Sol() {
             margin: 3,
             textAlign: "center",
             width: "100%",
-            minHeight: "70vh",
+            minHeight: "100%",
           }}
         >
           <Typography variant="h5">On-Exchange Balance Summary</Typography>
           <Divider sx={{ marginY: 2 }} />
           <DataGrid
+            sx={{ minHeight: '600px' }}
             rows={dataGrid}
             columns={balanceGridColumns}
             components={{ Toolbar: GridToolbar }}
@@ -690,7 +649,7 @@ function Sol() {
             margin: 3,
             textAlign: "center",
             width: "100%",
-            minHeight: "70vh",
+            minHeight: "100%",
           }}
         >
           <Typography variant="h5">Percent Share</Typography>

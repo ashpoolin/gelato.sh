@@ -8,7 +8,13 @@ import {
   Paper,
   Stack,
   Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   Chart as ChartJS,
@@ -153,72 +159,73 @@ function Spl() {
     const mint = mintMap.get(selectedCoin).mint;
 
     // let exchData = [];
-    for (let i = 0; i < exchangeLookup.length; i++) {
-      const exchange = exchangeLookup[i];
-      const response = await fetch(`${URL}/${exchange[1]}/${mint}`);
-      const data = await response.text();
-      const dataObj = JSON.parse(data);
-      const x_data = [];
-      const y_data = [];
-      const decimals = mintMap.get(selectedCoin).decimals;
-      const scale_factor = mintMap.get(selectedCoin).scale_factor;
-      const range_low = mintMap.get(selectedCoin).range_low;
-      const range_high = mintMap.get(selectedCoin).range_high;
-      setSelectedRangeLow(range_low);
-      setSelectedRangeHigh(range_high);
-      dataObj.map((line) => x_data.push(line.date));
-      dataObj.map((line) => y_data.push(line.price));
-      const color = getRandomColor(i);
-      const exchangeLabel = exchangeLabelMap.get(exchange[1]);
-      const exchangeData = {
-        label: exchangeLabel,
-        data: {
-          x: x_data,
-          y: y_data,
-        },
-        borderColor: color,
-        pointRadius: 1,
-        pointHoverRadius: 5,
-        fill: false,
-        tension: 0,
-        showLine: true,
-        backgroundColor: color,
-      };
-      // exchData.push(exchangeData);
-      setSelectedChartData(exchangeData);
-    }
-    // exchangeLookup.map(async exchange => {
-    //   await fetch(`${URL}/${exchange[1]}/${mint}`)
-    //     .then(response => {
-    //       return response.text();
-    //     })
-    //     .then(data => {
-    //       // transposing the column-based data to x,y (point) form for the 2D scatter plot
-    //       const dataObj = JSON.parse(data);
-    //       const x_data = [];
-    //       const y_data = [];
-    //       const decimals = mintMap.get(selectedCoin).decimals;
-    //       const scale_factor = mintMap.get(selectedCoin).scale_factor;
-    //       const range_low = mintMap.get(selectedCoin).range_low;
-    //       const range_high = mintMap.get(selectedCoin).range_high;
-    //       setSelectedRangeLow(range_low);
-    //       setSelectedRangeHigh(range_high);
-    //       dataObj.map(line => x_data.push(line.date));
-    //       dataObj.map(line => y_data.push(line.amount / 10 ** (decimals + scale_factor)));
+    // for (let i = 0; i < exchangeLookup.length; i++) {
+    //   const exchange = exchangeLookup[i];
+    //   const response = await fetch(`${URL}/${exchange[1]}/${mint}`);
+    //   const data = await response.text();
+    //   const dataObj = JSON.parse(data);
+    //   const x_data = [];
+    //   const y_data = [];
+    //   const decimals = mintMap.get(selectedCoin).decimals;
+    //   const scale_factor = mintMap.get(selectedCoin).scale_factor;
+    //   const range_low = mintMap.get(selectedCoin).range_low;
+    //   const range_high = mintMap.get(selectedCoin).range_high;
+    //   setSelectedRangeLow(range_low);
+    //   setSelectedRangeHigh(range_high);
+    //   dataObj.map((line) => x_data.push(line.date));
+    //   dataObj.map((line) => y_data.push(line.price));
+    //   const color = getRandomColor(i);
+    //   const exchangeLabel = exchangeLabelMap.get(exchange[1]);
+    //   const exchangeData = {
+    //     label: exchangeLabel,
+    //     data: {
+    //       x: x_data,
+    //       y: y_data,
+    //     },
+    //     borderColor: color,
+    //     pointRadius: 1,
+    //     pointHoverRadius: 5,
+    //     fill: false,
+    //     tension: 0,
+    //     showLine: true,
+    //     backgroundColor: color,
+    //   };
+    //   // exchData.push(exchangeData);
+    //   setSelectedChartData(exchangeData);
+    // }
 
-    //       const scatter = x_data.map((date, index) => {
-    //         let myObject = {};
-    //         myObject.x = moment.utc(date).valueOf();
-    //         // myObject.x = moment.utc(date).format('YYYY/MM/DD HH:mm:ss');
-    //         // myObject.x = moment.utc(date).format('YYYY/MM/DD HH:mm:ss'); // new Date(date).valueOf()
-    //         // myObject.x = new Date(date).valueOf();
-    //         myObject.y = y_data[index];
-    //         return myObject
-    //       });
-    //       // exchData.push([exchange[0], scatter]);
-    //       setExchangeData(oldExchangeData => [...oldExchangeData, [exchange[0], scatter]]);
-    //     });
-    // })
+    exchangeLookup.map(async exchange => {
+      await fetch(`${URL}/${exchange[1]}/${mint}`)
+        .then(response => {
+          return response.text();
+        })
+        .then(data => {
+          // transposing the column-based data to x,y (point) form for the 2D scatter plot
+          const dataObj = JSON.parse(data);
+          const x_data = [];
+          const y_data = [];
+          const decimals = mintMap.get(selectedCoin).decimals;
+          const scale_factor = mintMap.get(selectedCoin).scale_factor;
+          const range_low = mintMap.get(selectedCoin).range_low;
+          const range_high = mintMap.get(selectedCoin).range_high;
+          setSelectedRangeLow(range_low);
+          setSelectedRangeHigh(range_high);
+          dataObj.map(line => x_data.push(line.date));
+          dataObj.map(line => y_data.push(line.amount / 10 ** (decimals + scale_factor)));
+
+          const scatter = x_data.map((date, index) => {
+            let myObject = {};
+            // myObject.x = moment.utc(date).valueOf();
+            // myObject.x = moment.utc(date).format('YYYY/MM/DD HH:mm:ss');
+            // myObject.x = moment.utc(date).format('YYYY/MM/DD HH:mm:ss'); // new Date(date).valueOf()
+            myObject.x = new Date(date).valueOf();
+            myObject.y = y_data[index];
+            return myObject
+          });
+          // exchData.push([exchange[0], scatter]);
+          setExchangeData(oldExchangeData => [...oldExchangeData, [exchange[0], scatter]]);
+        });
+    })
 
     // let colorIndex = 0;
     // let data = {
@@ -387,20 +394,31 @@ function Spl() {
             </NativeSelect>
             <FormHelperText>Select an SPL token</FormHelperText>
           </FormControl>
-
-          <Typography>SPL Tokens On-Exchange</Typography>
-          <Typography>
-            As SPL tokens are only marginally represented on most CEXes, this
-            data may be of limited use to you. A much greater volume of SPL
-            tokens are traded on-chain, versus larger tokens like SOL, ETH, and
-            BTC. However, CEXes are often used to obscure the actions of whales,
-            particularly with low market cap coins. This chart will be most
-            useful when a new token is released, and it's likely to be sent onto
-            an exchange to "provide liquidity." This first major spot inflows
-            can be indicative of distribution, and often mark a top, as we saw
-            with coins like GMT on FTX, where both Alameda and Wintermute sent
-            everything around the same time.
-          </Typography>
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography>SPL On-Exchange Balances</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                  As SPL tokens are only marginally represented on most CEXes, this
+                data may be of limited use to you. A much greater volume of SPL
+                tokens are traded on-chain, versus larger tokens like SOL, ETH, and
+                BTC. However, CEXes are often used to obscure the actions of whales,
+                particularly with low market cap coins. This chart will be most
+                useful when a new token is released, and it's likely to be sent onto
+                an exchange to "provide liquidity." This first major spot inflows
+                can be indicative of distribution, and often mark a top, as we saw
+                with coins like GMT on FTX, where both Alameda and Wintermute sent
+                everything around the same time.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
         </Stack>
       </Paper>
     </Stack>
