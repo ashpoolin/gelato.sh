@@ -114,20 +114,22 @@ function Spl() {
   const [selectedRangeLow, setSelectedRangeLow] = useState(0);
   const [selectedRangeHigh, setSelectedRangeHigh] = useState(4);
   const [selectedOptions, setSelectedOptions] = useState({});
-  // const [selectedChartData, setSelectedChartData] = useState({});
-  const [selectedChartData, setSelectedChartData] = useState({
-    datasets: {
-      label: "coinbase",
-      data: { x: 1675126453000, y: 2507.787687944597 },
-      borderColor: "#46237A",
-      pointRadius: 1,
-      pointHoverRadius: 5,
-      fill: false,
-      tension: 0,
-      showLine: true,
-      backgroundColor: "#46237A",
-    },
-  });
+  const [selectedChartData, setSelectedChartData] = useState({});
+  const [lockedAndLoaded, setLockedAndLoaded] = useState(false);
+
+  // const [selectedChartData, setSelectedChartData] = useState({
+  //   datasets: {
+  //     label: "coinbase",
+  //     data: { x: 1675126453000, y: 2507.787687944597 },
+  //     borderColor: "#46237A",
+  //     pointRadius: 1,
+  //     pointHoverRadius: 5,
+  //     fill: false,
+  //     tension: 0,
+  //     showLine: true,
+  //     backgroundColor: "#46237A",
+  //   },
+  // });
 
   // ticker,mint,index,decimals,scale factor,range low (log),range high (log)
   function getRandomColor(index) {
@@ -156,7 +158,17 @@ function Spl() {
   }, []);
   // }); // don't do this --> infinitely queries your db some reason
   async function getExchangeSplData() {
+    // INITIALIZE AND GRAB SELECTED COIN DATA
+    setExchangeData([]);
+    setSelectedOptions({});
+    // setSelectedChartData([]);
     const mint = mintMap.get(selectedCoin).mint;
+    const decimals = mintMap.get(selectedCoin).decimals;
+    const scale_factor = mintMap.get(selectedCoin).scale_factor;
+    const range_low = mintMap.get(selectedCoin).range_low;
+    const range_high = mintMap.get(selectedCoin).range_high;
+    setSelectedRangeLow(range_low);
+    setSelectedRangeHigh(range_high);
 
     // let exchData = [];
     // for (let i = 0; i < exchangeLookup.length; i++) {
@@ -194,6 +206,70 @@ function Spl() {
     //   setSelectedChartData(exchangeData);
     // }
 
+    // SET CHART OPTIONS AND AXES SCALES
+    let options = {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "right", // as const,
+        },
+        title: {
+          display: true,
+          text: "On-Exchange Balances",
+        },
+      },
+      elements: {
+        line: {
+          showLine: true,
+          backgroundColor: "#FFFFFF",
+        },
+        point: {
+          radius: 5,
+        },
+      },
+      scales: {
+        // xAxes: [{  // This does nothing. Trying to get data point on chart to show date, not unix time (integer)
+        //   type: 'time',
+        //   time: { parser: 'YYYY/MM/DD HH:mm:ss' },
+        // }],
+        x: {
+          // type: 'time',
+          // time: { parser: 'YYYY/MM/DD HH:mm:ss' },
+          ticks: {
+            callback: function (value, index, values) {
+              return new Date(value).toISOString().split("T")[0];
+            },
+          },
+        },
+        y: {
+          type: "logarithmic",
+          min: 10 ** selectedRangeLow,
+          max: 10 ** selectedRangeHigh,
+          ticks: {
+            autoSkip: true,
+            min: 100,
+            callback: function (value, index, values) {
+              if (
+                value === 100 ||
+                value === 1000 ||
+                value === 10000 ||
+                value === 100000 ||
+                value === 1000000 ||
+                value === 10000000 ||
+                value === 100000000
+              ) {
+                return value;
+              }
+            },
+          },
+        },
+      },
+    };
+    setSelectedOptions(options);
+
+    // PULL THE DATA FROM DB
+    let datasetsArray = [];
+    let colorIndex = 0;
     exchangeLookup.map(async exchange => {
       await fetch(`${URL}/${exchange[1]}/${mint}`)
         .then(response => {
@@ -204,12 +280,6 @@ function Spl() {
           const dataObj = JSON.parse(data);
           const x_data = [];
           const y_data = [];
-          const decimals = mintMap.get(selectedCoin).decimals;
-          const scale_factor = mintMap.get(selectedCoin).scale_factor;
-          const range_low = mintMap.get(selectedCoin).range_low;
-          const range_high = mintMap.get(selectedCoin).range_high;
-          setSelectedRangeLow(range_low);
-          setSelectedRangeHigh(range_high);
           dataObj.map(line => x_data.push(line.date));
           dataObj.map(line => y_data.push(line.amount / 10 ** (decimals + scale_factor)));
 
@@ -222,129 +292,47 @@ function Spl() {
             myObject.y = y_data[index];
             return myObject
           });
+
           // exchData.push([exchange[0], scatter]);
-          setExchangeData(oldExchangeData => [...oldExchangeData, [exchange[0], scatter]]);
+          // filters out exchanges with empty data arrays
+          if (Object.keys(scatter).length > 0) {
+            let color = getRandomColor(colorIndex);
+            let myObject = {};
+            myObject.label = exchange[0];
+            myObject.data = scatter;
+            myObject.borderColor = `${color}`;
+            myObject.pointRadius = 1;
+            myObject.pointHoverRadius = 5;
+            myObject.fill = false;
+            myObject.tension = 0;
+            myObject.showLine = true;
+            myObject.backgroundColor = `${color}`;
+            colorIndex += 1;
+            datasetsArray.push(myObject);
+            setExchangeData(oldExchangeData => [...oldExchangeData, myObject]);
+            // setExchangeData(oldExchangeData => [...oldExchangeData, [exchange[0], scatter]]); // old way. (!) I changed data structure of exchangeData
+          }
         });
-    })
-
-    // let colorIndex = 0;
-    // let data = {
-    //   datasets:
-    //     exchangeData.map(exchange => {
-    //       let color = getRandomColor(colorIndex);
-    //       let myObject = {};
-    //       myObject.label = exchange[0];
-    //       myObject.data = exchange[1];
-    //       myObject.borderColor = `${color}`;
-    //       myObject.pointRadius = 1;
-    //       myObject.pointHoverRadius = 5;
-    //       myObject.fill = false;
-    //       myObject.tension = 0;
-    //       myObject.showLine = true;
-    //       myObject.backgroundColor = `${color}`;
-    //       colorIndex += 1;
-    //       return myObject
-    //     })
-    // }
-    // setSelectedChartData({data});
+    });
+    // BUILD THE CHART "data" STRUCTURE, SET STATE VARIABLES
+    setSelectedChartData({
+      datasets: exchangeData
+    });
+    setLockedAndLoaded(true);
   }
-
-  let colorIndex = 0;
-  let data = {
-    datasets: exchangeData.map((exchange) => {
-      // if (exchange[1].length !== 0) { // attempt to ignore exchange w/o data, but doesn't work currently
-      let color = getRandomColor(colorIndex);
-      let myObject = {};
-      myObject.label = exchange[0];
-      myObject.data = exchange[1];
-      myObject.borderColor = `${color}`;
-      myObject.pointRadius = 1;
-      myObject.pointHoverRadius = 5;
-      myObject.fill = false;
-      myObject.tension = 0;
-      myObject.showLine = true;
-      myObject.backgroundColor = `${color}`;
-      colorIndex += 1;
-      return myObject;
-      // }
-    }),
-  };
-
-  // function setChartOptions() {
-  let options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "right", // as const,
-      },
-      title: {
-        display: true,
-        text: "On-Exchange Balances",
-      },
-    },
-    elements: {
-      line: {
-        showLine: true,
-        backgroundColor: "#FFFFFF",
-      },
-      point: {
-        radius: 5,
-      },
-    },
-    scales: {
-      // xAxes: [{  // This does nothing. Trying to get data point on chart to show date, not unix time (integer)
-      //   type: 'time',
-      //   time: { parser: 'YYYY/MM/DD HH:mm:ss' },
-      // }],
-      x: {
-        // type: 'time',
-        // time: { parser: 'YYYY/MM/DD HH:mm:ss' },
-        ticks: {
-          callback: function (value, index, values) {
-            return new Date(value).toISOString().split("T")[0];
-          },
-        },
-      },
-      y: {
-        type: "logarithmic",
-        min: 10 ** selectedRangeLow,
-        max: 10 ** selectedRangeHigh,
-        ticks: {
-          autoSkip: true,
-          min: 100,
-          callback: function (value, index, values) {
-            if (
-              value === 100 ||
-              value === 1000 ||
-              value === 10000 ||
-              value === 100000 ||
-              value === 1000000 ||
-              value === 10000000 ||
-              value === 100000000
-            ) {
-              return value;
-            }
-          },
-        },
-      },
-    },
-  };
-  // setSelectedOptions(options);
-  // };
-  // setChartOptions();
 
   function renderScatter() {
     // let ref = useRef(0);
     return (
-      <Scatter options={options} data={data} ref={chartRef} />
+      <Scatter options={selectedOptions} data={selectedChartData} ref={chartRef} />
       // <Scatter options={options} data={data} reference = {(referee) => this.reference = referee} />
       // <Scatter options={options} data={selectedChartData} reference = {(referee) => this.reference = referee} />
     );
   }
 
   const selectionChangeHandler = async (event) => {
+    setLockedAndLoaded(false)
     setSelectedCoin(event.target.value);
-    setExchangeData([]);
     await getExchangeSplData();
   };
 
@@ -356,16 +344,18 @@ function Spl() {
           margin: 3,
           textAlign: "center",
           width: "100%",
-          minHeight: "70vh",
+          minHeight: "100%",
+          // minHeight: "70vh",
         }}
       >
         <Stack spacing={3}>
           <Typography variant="h5">
             {selectedCoin} On-Exchange Balances
           </Typography>
+          {lockedAndLoaded ? renderScatter() : <p> loading </p> }
           {/* <Scatter options={selectedOptions} data={selectedChartData} /> */}
           {/* <p>{JSON.stringify(data)}</p> */}
-          {renderScatter()}
+
           {/* <Scatter options={options} data={selectedChartData.data} /> */}
           <Typography>
             y-scale = 1 / 10^{mintMap.get(selectedCoin).scale_factor}
@@ -394,6 +384,13 @@ function Spl() {
             </NativeSelect>
             <FormHelperText>Select an SPL token</FormHelperText>
           </FormControl>
+          <Typography>
+            <p>{`${lockedAndLoaded}`}</p>
+            <p>{selectedCoin}</p>
+            {/* {lockedAndLoaded ? JSON.stringify(selectedChartData) : <p> loading </p> } */}
+            <p>{JSON.stringify(selectedChartData)}</p>
+
+          </Typography>
           <Accordion
             elevation={2}
           >

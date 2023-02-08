@@ -194,10 +194,12 @@ function Sol() {
             myObject.y = y_data[index];
             return myObject;
           });
-          setExchangeData((oldExchangeData) => [
-            ...oldExchangeData,
-            [exchange[0], scatter],
-          ]);
+          if (Object.keys(scatter).length > 0) {
+            setExchangeData((oldExchangeData) => [
+              ...oldExchangeData,
+              [exchange[0], scatter],
+            ]);
+          }
         });
     });
   }
