@@ -194,6 +194,7 @@ function Sol() {
             myObject.y = y_data[index];
             return myObject;
           });
+          // filters out exchanges with empty data arrays
           if (Object.keys(scatter).length > 0) {
             setExchangeData((oldExchangeData) => [
               ...oldExchangeData,
