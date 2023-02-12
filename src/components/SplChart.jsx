@@ -98,6 +98,83 @@ const nabData = (coin) => {
     // return exchangeData
 }
 
+
+// TRY THIS
+function getRandomColor2() {
+    const colorArray = [
+      "#FF7F50",
+      "#FCFCFC",
+      "#3DDC97",
+      "#46237A",
+      "#256EFF",
+      "#1446a0",
+      "#99D17B",
+      "#3C3C3B",
+      "#B4436C",
+      "#9D8DF1",
+      "#5FAD56",
+      "#4D9078",
+      "#645DD7",
+      "#B3FFFC",
+    ];
+    // const index = Math.floor(Math.random() * (colorArray.length - 0 + 1) + 0)
+    return colorArray[Math.floor(Math.random() * colorArray.length)];
+  }
+async function getData (coin) {
+    const datasetsArray = [];
+    const colorIndex = 0;
+
+    const promises = [];
+
+    for (const [key, exchange] of exchangeToAddressMap) {
+        const mint = mintMap.get(coin).mint;
+        const decimals = mintMap.get(coin).decimals;
+        const scaleFactor = mintMap.get(coin).scale_factor;
+
+        promises.push(fetch(`${URL}/${exchange}/${mint}`)
+            .then(response => response.text())
+            .then(data => {
+                try {
+                    const dataObj = JSON.parse(data);
+                    const dates = [];
+                    const amounts = [];
+
+                    dataObj.forEach(line => dates.push(line.date));
+                    dataObj.forEach(line => amounts.push(line.amount / 10 ** (decimals + scaleFactor)));
+
+                    const scatter = dates.map((date, index) => {
+                        const myObject = {};
+                        myObject.x = new Date(date).valueOf();
+                        myObject.y = amounts[index];
+                        return myObject;
+                    });
+
+                    if (scatter.length > 0) {
+                        const color = getRandomColor2();
+                        const dataset = {};
+                        dataset.label = key;
+                        dataset.data = scatter;
+                        dataset.borderColor = color;
+                        dataset.pointRadius = 1;
+                        dataset.pointHoverRadius = 5;
+                        dataset.fill = false;
+                        dataset.tension = 0;
+                        dataset.showLine = true;
+                        dataset.backgroundColor = color;
+                        datasetsArray.push(dataset);
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            }));
+    }
+
+    await Promise.all(promises);
+
+    return datasetsArray;
+}
+
+
     // BUILD THE CHART "data" STRUCTURE, SET STATE VARIABLES
     // setSelectedChartData({
     //   // datasets: datasetsArray
