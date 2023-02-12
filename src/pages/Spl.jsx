@@ -58,13 +58,15 @@ ChartJS.register(
 );
 
 function Spl() {
-  const [selectedCoin, setSelectedCoin] = useState("BONK");
+  const [selectedCoin, setSelectedCoin] = useState("GMT");
 
   const selectionChangeHandler = async (event) => {
     // setLockedAndLoaded(false)
     setSelectedCoin(event.target.value);
     // await getExchangeSplData();
-    SplChart.render();
+    // SplChart.setCoin(event.target.value);
+    // SplChart.initialize();
+    // SplChart.render();
   };
 
   return (
@@ -84,7 +86,7 @@ function Spl() {
             {selectedCoin} On-Exchange Balances
           </Typography>
           {/* {lockedAndLoaded ? renderScatter() : <p> loading </p> } */}
-          <SplChart />
+            <SplChart coin={selectedCoin} />
           {/* {renderScatter()} */}
           {/* <Scatter options={selectedOptions} data={selectedChartData} /> */}
           {/* <p>{JSON.stringify(data)}</p> */}
@@ -100,12 +102,12 @@ function Spl() {
               SPL Token
             </InputLabel>
             <NativeSelect
-              // defaultValue={"BONK"}
+              // defaultValue={""}
               // inputProps={{
               // name: 'Coin',
               // id: 'uncontrolled-native',
               // }}
-              value={selectedCoin}
+              // value={selectedCoin}
               onChange={selectionChangeHandler}
             >
               <option value={"BONK"}>BONK</option>
