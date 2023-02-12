@@ -64,7 +64,7 @@ function Spl() {
     // setLockedAndLoaded(false)
     setSelectedCoin(event.target.value);
     // await getExchangeSplData();
-    // SplChart.refresh();
+    SplChart.render();
   };
 
   return (

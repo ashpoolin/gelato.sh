@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import { render } from 'react-dom';
 // import './style.css';
 import { Scatter } from 'react-chartjs-2'
@@ -8,7 +8,6 @@ import { exchangeToAddressMap } from "../data/exchanges.js";
 
 
 const URL = process.env.REACT_APP_API_URL;
-
 
 
 function getRandomColor(index) {
@@ -34,17 +33,23 @@ function getRandomColor(index) {
 
 // PULL THE DATA FROM DB
 // async function nabData (coin) {
-function nabData (coin) {
+const nabData = (coin) => {
+    // function nabData (coin) {
+    // const [exchangeData, setExchangeData] = useState([]);
+
     let datasetsArray = [];
     let colorIndex = 0;
 
-    exchangeToAddressMap.forEach(async function(exchange, key) {
+    for (let [key, value] of exchangeToAddressMap) {
+        // console.log(key + " = " + value);
+        // }
+    // exchangeToAddressMap.forEach(async function(exchange, key) {
         const mint = mintMap.get(coin).mint;
         const decimals = mintMap.get(coin).decimals;
         const scale_factor = mintMap.get(coin).scale_factor;
 
         // exchangeData.map(async exchange => {
-          await fetch(`${URL}/${exchange}/${mint}`) // using new, external exchangeToAddressMap
+        fetch(`${URL}/${value}/${mint}`) // using new, external exchangeToAddressMap
           // await fetch(`${URL}/${exchange[1]}/${mint}`) // using exchangeData array type
             .then(response => {
               return response.text();
@@ -82,12 +87,15 @@ function nabData (coin) {
                 // console.log(`${JSON.stringify(myObject)}`)
                 colorIndex += 1;
                 datasetsArray.push(myObject); // (!) never pushes data. Array is `null`.
+                console.log(JSON.stringify(datasetsArray[0]));
                 // setExchangeData(oldExchangeData => [...oldExchangeData, myObject]);
                 // setExchangeData(oldExchangeData => [...oldExchangeData, [exchange[0], scatter]]); // old way. (!) I changed data structure of exchangeData
               }
             });
-        });
-    return datasetsArray; // (!) Here's the problem: always null result. Never populates. don't know why.
+        };
+        // });
+    return datasetsArray // (!) Here's the problem: always null result. Never populates. don't know why.
+    // return exchangeData
 }
 
     // BUILD THE CHART "data" STRUCTURE, SET STATE VARIABLES
@@ -99,11 +107,14 @@ function nabData (coin) {
 class SplChart extends Component {
 
 
+
+
+
   constructor() {
     super();
     this.coin = 'BONK';      
-    // const [exchangeData, setExchangeData] = useState([]);
     
+    // this.chartReference = {};
     this.chartReference = React.createRef();
     this.state = {
       name: 'React',
@@ -113,21 +124,21 @@ class SplChart extends Component {
         //   data: [5, 7, 6],
         //   backgroundColor: ['red', 'green', 'blue']
         // }]
-        datasets: nabData(this.coin)  // The issue: you don't get back values from datasetsArray. WTF
+        // datasets: nabData(this.coin)  // The issue: you don't get back values from datasetsArray. WTF
         // datasets: [(nabData(this.coin)).map(objecto => {
             // return objecto
         // })]
-        // "datasets":[{
-        //     "label":"kraken",
-        //     "data":[{"x":1675516366000,"y":250},{"x":1675729360000,"y":265},{"x":1675942579000,"y":200}],
-        //     "borderColor":"#FF7F50",
-        //     "pointRadius":1,
-        //     "pointHoverRadius":5,
-        //     "fill":false,
-        //     "tension":0,
-        //     "showLine":true,
-        //     "backgroundColor":"#FF7F50"
-        // }]       
+        datasets:[{
+            label:"kraken",
+            data:[{"x":1675516366000,"y":250},{"x":1675729360000,"y":265},{"x":1675942579000,"y":200}],
+            borderColor:"#FF7F50",
+            pointRadius:1,
+            pointHoverRadius:5,
+            fill:false,
+            tension:0,
+            showLine:true,
+            backgroundColor:"#FF7F50"
+        }]       
       },
       options : {
         responsive: true,
@@ -205,15 +216,44 @@ class SplChart extends Component {
     // }, 2000); 
   }
 
+  async initialize() {
+    //   const datasetsResult = await nabData(this.coin);
+    //   const db = await initializeDatabase();
+    //   const data = await db.fetchUser(this.#id);
+    //   const result = await doSomeMoreWork(data);
+      this.state.data = {
+        datasets: await nabData(this.coin)
+        // datasets: datasetsResult
+      }
+  }
+
+  componentDidMount() {
+    console.log(this.chartReference); // returns a Chart.js instance reference
+  }
+
+  // I don't think this works. The reference is undefined
   refresh() {
-    const chart = this.chartReference.current.chartInstance;
-    chart.update();
+    // const chart = this.chartReference.chartInstance;
+    // const chart = this.chartReference.current.chartInstance;
+    // const chart = this.chartReference;
+    // chart.update();
+    let lineChart = this.chartInstance
+    lineChart.update();
   }; 
 
+  setCoin(coin) {
+    this.coin = coin;
+  }
   render() {
+    // this.componentDidMount()
+    this.initialize();
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    // this.refresh();
     return (
-        JSON.stringify(this.state.data)
+        // JSON.stringify(this.state.data)
     //   <Scatter ref={this.chartReference} data={this.state.data} options={this.state.options}/>
+      <Scatter ref={(reference) => this.chartReference = reference } data={this.state.data} options={this.state.options}/>
+      
     )
   }
 }
