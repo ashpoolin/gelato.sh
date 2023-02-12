@@ -615,7 +615,7 @@ function Sol() {
           }}
         >
           <Typography variant="h5">
-            Total Exchange Inflows(+ve)/Outflows(-ve) by Date
+            Total Exchange SOL Flows by Date
           </Typography>
           <Divider sx={{ marginY: 2 }} />
           <Bar options={inflowChartOptions} data={inflowChartData} />
