@@ -120,6 +120,7 @@ function Sol() {
     ["bybit", "AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2"],
     ["coinbase", "H8sMJSCQxfKiFTCfDR3DUMLPwcRbM61LGFJ8N4dK3WjS"],
     ["coinbase2", "2AQdpHJ2JpcEgPiATUXjQxA8QmafFegfQwSLWSprPicm"],
+    ["coinbase_cold", "GJRs4FwHtemZ5ZE9x3FNvJ8TMwitKTh21yxdRPqn7npE"],
     ["crypto_com_1", "6FEVkH17P9y8Q9aCkDdPcMDjvj7SVxrTETaYEm8f51Jy"],
     ["crypto_com_2", "AobVSwdW9BbpMdJvTqeCN4hPAmh4rHm7vwLnQ5ATSyrS"],
     ["gate_io", "u6PJ8DtQuPFnfmwHbGFULQ4u4EgjDiyYKjVEsynXq2w"],
