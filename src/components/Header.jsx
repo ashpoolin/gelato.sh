@@ -31,6 +31,9 @@ function Header() {
         <Button href="/spl" color="secondary">
           SPL
         </Button>
+        <Button href="/wallets" color="secondary">
+          Wallets
+        </Button>
         <Button href="/research" color="secondary">
           Research
         </Button>
