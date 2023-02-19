@@ -281,6 +281,10 @@ function Sol() {
       });
   }
 
+  const formatNumber = (number) => {
+    return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
+  };
+  
   const webhookGridColumns = [
     { field: "dt", headerName: "Timestamp", GridColDef: "flex", flex: 1 },
     {
@@ -349,10 +353,10 @@ function Sol() {
       flex: 1,
       renderCell: (params) =>
         Math.abs(params.row.amount) > 100000
-          ? Math.floor(params.row.amount) +
+          ? formatNumber(params.row.amount) +
             " " +
             String.fromCodePoint("0x1F6A9")
-          : Math.floor(params.row.amount),
+          : formatNumber(params.row.amount),
     },
   ];
 
@@ -377,7 +381,13 @@ function Sol() {
         </Link>
       ),
     },
-    { field: "balance", headerName: "Balance", GridColDef: "flex", flex: 1 },
+    { 
+      field: "balance", 
+      headerName: "Balance", 
+      GridColDef: "flex", 
+      flex: 1,
+      renderCell: (params) => formatNumber(params.row.balance),
+    },
     {
       field: "pct_share",
       headerName: "% Share",

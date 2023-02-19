@@ -75,6 +75,16 @@ function Wallets() {
     const LAMPORTS_PER_SOL = 1_000_000_000;
 
     const { data } = await axios.get(HELIUS_URL);
+    // FETCH JUST DOESN'T WORK. ACCESSING ELEMENTS IN OBJECT INCORRECTLY
+    // let data = {};
+    // fetch(HELIUS_URL)
+    // .then((response) => {
+    //   return response.text();
+    // })
+    // .then((apiData) => {
+    //   data = JSON.parse(apiData) // probably here... 
+    // });
+
     const labelUrl = `${URL}/labels/${address}`
     // const { labelData } = await axios.get(labelUrl);
       fetch(labelUrl)
