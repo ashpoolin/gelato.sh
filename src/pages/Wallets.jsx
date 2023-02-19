@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -37,8 +37,12 @@ import { Box } from "@mui/system";
 
 import DOMPurify from 'dompurify';
 import { TokenList } from '../data/solana_tokenlist_short.js';
-
+import { Connection } from '@solana/web3.js'
 import axios from 'axios';
+import { TldParser } from "@onsol/tldparser";
+import { getNameOwner, getDomainKey } from "@bonfida/spl-name-service";
+import debounce from "lodash.debounce";
+
 const URL = process.env.REACT_APP_API_URL;
 // const URL = "http://localhost:3001" 
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -60,6 +64,11 @@ const formatNumber = (number) => {
   return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
 };
 
+
+const hasDomainSyntax = (value) => {
+  return value.length > 4;
+};
+
 function Wallets() {
   const [tab, setTab] = useState(0);
   const [walletBalanceGrid, setWalletBalanceGrid] = useState([]);
@@ -67,6 +76,39 @@ function Wallets() {
   const [displayAddress, setDisplayAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState("");
 
+  const debouncedGetAndSet = useCallback(
+    debounce(async (query) => await getAndSetAddress(query), 750),
+    [],
+);
+  const getAndSetAddress = async (query) => {
+    if (query.length < 4) return;
+    if (hasDomainSyntax(query) && query.split('.').length >= 2 ){
+      const connection = new Connection(`https://rpc.helius.xyz/?api-key=${API_KEY}`);
+      if (!query.endsWith(".sol")) {
+        // parses ans domains
+        const parser = new TldParser(connection)
+        try {
+          const owner = await parser.getOwnerFromDomainTld(query);
+          if (owner) setSearchQuery(owner.toString());
+        } catch {}
+        return;
+      } else {
+        // parses spl domain
+        try {
+          const { pubkey: domainKey } = await getDomainKey(
+            query,
+            false,
+          );
+          const {registry} = await getNameOwner(connection, domainKey);
+          if (registry && registry.owner) {
+            setSearchQuery(registry.owner.toString())
+          }
+          return;
+        } catch {}
+      }
+    }
+    setSearchQuery(query)
+  };
   const getBalancesFromHelius = async () => {
     setWalletLabel("");
     const address = searchQuery;
@@ -208,7 +250,7 @@ function Wallets() {
           <Typography variant="h5">
                 Balances
           </Typography><br />
-          <TextField id="standard-basic" label="Search an address" variant="standard" onChange={(e) => setSearchQuery( DOMPurify.sanitize(e.target.value.trim()) )} />
+          <TextField id="standard-basic" label="Search an address" variant="standard" onChange={(e) => debouncedGetAndSet( DOMPurify.sanitize(e.target.value.trim()) )} />
           <Button color="secondary" onClick={getBalancesFromHelius}>SEARCH</Button>
           <br /><br />
           <Divider sx={{ marginY: 2 }} />
