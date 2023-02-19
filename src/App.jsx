@@ -3,6 +3,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Sol from "./pages/Sol";
 import Spl from "./pages/Spl";
+import Wallets from "./pages/Wallets";
 import Research from "./pages/Research";
 import About from "./pages/About";
 import { Container } from "@mui/material";
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/sol" element={<Sol />} />
                 <Route path="/spl" element={<Spl />} />
+                <Route path="/wallets" element={<Wallets />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/about" element={<About />} />
               </Routes>
