@@ -37,6 +37,7 @@ import { Box } from "@mui/system";
 
 import DOMPurify from 'dompurify';
 import { TokenList } from '../data/solana_tokenlist_short.js';
+import { CoingeckoTokenList } from '../data/coingecko_sol_tickers_clean.js';
 import { Connection } from '@solana/web3.js'
 import axios from 'axios';
 import { TldParser } from "@onsol/tldparser";
@@ -129,13 +130,17 @@ function Wallets() {
 
     const labelUrl = `${URL}/labels/${address}`
     // const { labelData } = await axios.get(labelUrl);
-      fetch(labelUrl)
+      await fetch(labelUrl)
       .then((response) => {
         return response.text();
       })
       .then((labelData) => {
-        const label = (JSON.parse(labelData))[0].label || address
-        setWalletLabel(label);
+        try {
+          const label = (JSON.parse(labelData))[0].label
+          setWalletLabel(label);
+        } catch {
+          setWalletLabel(address);
+        }
       });
 
         const solanaObject = {}
@@ -145,10 +150,50 @@ function Wallets() {
         solanaObject.mint = "-"
         solanaObject.address = address
         solanaObject.balance = data.nativeBalance / LAMPORTS_PER_SOL
-        const grid = [];
+        solanaObject.cgid =  "solana";
+        try {
+          const {data} = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=USD`)
+          const price = data[`solana`].usd
+          solanaObject.price = price || 0;
+          solanaObject.value = price * solanaObject.balance;
+        } catch (err) {
+          solanaObject.price = 0;
+          solanaObject.value = 0;
+          console.log(err)
+        }
+
+        let grid = [];
         grid.push(solanaObject);
 
-        data.tokens.map((token, id) => {
+        // single CoinGecko query to get token prices
+         let cgidLookup = [];
+         let tokenData = {};
+
+        data.tokens.map(async (token, id) => {
+          const tokenMintAddress = token.mint;
+          const tokenBalance = token.amount / (10 ** token.decimals) ; // converted immediately to uiBalance format
+          // filter out non-zero and NFT balances (qty = 1)
+          if (tokenBalance > 0 || tokenBalance !== 1) {
+            let searchField = "address";
+            let searchVal = tokenMintAddress;
+            
+            for (let i=0 ; i < CoingeckoTokenList.length ; i++)
+            {
+              if (CoingeckoTokenList[i][searchField] === searchVal) {
+                cgidLookup.push(CoingeckoTokenList[i].id);
+              } 
+            }
+          }
+        });  
+
+        // query CoinGecko for price
+        const queryString = cgidLookup.join('%2C')
+        const CGURL = `https://api.coingecko.com/api/v3/simple/price?ids=${queryString}&vs_currencies=usd`;
+        const tmpdata = await axios.get(CGURL);
+        tokenData = tmpdata.data
+
+        // Now we build the grid object, b/c we have the required token price and data 
+        data.tokens.map(async (token, id) => {
           //Parse the account data
           const tokenAddress = token.tokenAccount;
           const tokenMintAddress = token.mint;
@@ -157,16 +202,28 @@ function Wallets() {
           if (tokenBalance > 0 || tokenBalance !== 1) {
             let searchField = "address";
             let searchVal = tokenMintAddress;
-            for (let i=0 ; i < TokenList.length ; i++)
+
+            for (let i=0 ; i < CoingeckoTokenList.length ; i++)
             {
-                if (TokenList[i][searchField] === searchVal) {
+                if (CoingeckoTokenList[i][searchField] === searchVal) {
                   let myObject = {};
                   myObject.id = id;
-                  myObject.symbol = TokenList[i].symbol || "-";
+                  myObject.symbol = CoingeckoTokenList[i].symbol || "-";
                   myObject.mint = tokenMintAddress;
                   myObject.address = tokenAddress;
                   myObject.balance = tokenBalance;
-                  grid.push(myObject)
+                  myObject.cgid = CoingeckoTokenList[i].id || "-";
+                  try {
+                    const price = tokenData[CoingeckoTokenList[i].id].usd
+                    myObject.price =  price * CoingeckoTokenList[i].multiplier
+                    myObject.value =  price * tokenBalance 
+                  } catch(err) {
+                    myObject.price =  0 
+                    myObject.value =  0
+                  }
+                  try {
+                    grid.push(myObject)
+                  } catch {}
                 } 
             }
           }
@@ -228,6 +285,27 @@ function Wallets() {
             String.fromCodePoint("0x1F6A9")
           : formatNumber(params.row.balance),
     },
+    // { field: "cgid", headerName: "CG ID", GridColDef: "flex", flex: 1 },
+    { 
+      field: "price", 
+      headerName: "Price (USD)", 
+      GridColDef: "flex", 
+      flex: 1,
+      renderCell: (params) =>
+          "$" + formatNumber(params.row.price)
+    },
+    { 
+      field: "value", 
+      headerName: "Total (USD)", 
+      GridColDef: "flex", 
+      flex: 1,
+      renderCell: (params) =>
+        Math.abs(params.row.value) > 1000000
+          ? "$" + formatNumber(params.row.value) +
+            " " +
+            String.fromCodePoint("0x1F6A9")
+          : "$" + formatNumber(params.row.value),
+    },
   ];
 
   return (
@@ -283,7 +361,11 @@ function Wallets() {
               <Typography>
                 Beware that this a DeFi balance tracker that filters out zero balances, NFTs and anything with balance exactly equal to 1.
                 Empty SPL token accounts can be informative, as the account may hold substantial history. However, empty accounts and 
-                plausible NFT accounts (balance = 1) are both omitted here to prevent clutter. 
+                plausible NFT accounts (balance = 1) are both omitted here to prevent clutter. <br />
+                Note that the search only accepts wallet owners (not associated token addresses), .sol (Solana Name Service; SNS), and .abc (Alternative Name Service; ANS) <br />
+                (!) CAUTION w/ PRICES: IF THE TOKEN PRICE LOOKS WRONG, IT PROBABLY IS. The tracker tries to map token mint IDs to ticker symbol, then to known API handles on Coingecko. 
+                The sheer volume of fake/spam tokens on Solana, as well as duplicated tickers, makes correctly reconciling price with the actual token difficult. USER BEWARE!   
+
               </Typography>
               <br/>
               <Typography>

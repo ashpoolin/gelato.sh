@@ -20,11 +20,12 @@ function Home() {
         height={250}
       />
       <Typography variant="h4" textAlign={"center"}>
-        Serving up insights for the Solana Ecosystem
+        Situational Awareness for the Solana Ecosystem
       </Typography>
       <ul>
         <li>Real-Time Exchange Wallet Tracker (SOL + SPLs)</li>
         <li>Event Log for significant inflows/outflows</li>
+        <li>**NEW**: DeFi Wallet Profiler</li>
         <li>Custom Alerts (coming soon)</li>
       </ul>
     </Stack>
