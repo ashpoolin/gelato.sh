@@ -27,6 +27,9 @@ function Header() {
         </Button>
         <Button href="/sol" color="secondary">
           SOL
+        </Button>        
+        <Button href="/stake" color="secondary">
+          STAKE
         </Button>
         <Button href="/spl" color="secondary">
           SPL

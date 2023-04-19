@@ -2,6 +2,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Sol from "./pages/Sol";
+import Stake from "./pages/Stake";
 import Spl from "./pages/Spl";
 import Wallets from "./pages/Wallets";
 import Research from "./pages/Research";
@@ -44,6 +45,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/sol" element={<Sol />} />
+                <Route path="/stake" element={<Stake />} />
                 <Route path="/spl" element={<Spl />} />
                 <Route path="/wallets" element={<Wallets />} />
                 <Route path="/research" element={<Research />} />
