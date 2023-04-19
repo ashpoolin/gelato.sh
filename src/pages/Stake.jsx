@@ -57,7 +57,7 @@ export const inflowChartOptions = {
     },
     title: {
       display: true,
-      text: "Combined Exchange Flows by Date",
+      text: "Combined Solana Stake Flows by Date",
     },
   },
 };
