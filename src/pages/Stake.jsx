@@ -57,7 +57,7 @@ export const options = {
     },
     title: {
       display: true,
-      text: "On-Exchange Balances (SOL)",
+      text: "Solana Active Stake (SOL)",
     },
   },
   elements: {
@@ -165,43 +165,43 @@ function Stake() {
   const [tab, setTab] = useState(0);
   const [webhookGrid, setWebhookGrid] = useState([]);
   const [supplyData, setSupplyData] = useState([]);
-  const [supplyScatter, setSupplyScatter] = useState([]);
+  const [stakeScatter, setStakeScatter] = useState([]);
 
 
-  // calls to collect data from the postgres API (gelato.express)
-  useEffect(() => {
-    getSolanaSupplyInfo();
-  }, []);
-  function getSolanaSupplyInfo() {
-    fetch(`${URL}/supply`)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        const dataObj = JSON.parse(data);
-        // const console.log(dataObj)
-        // transposing the column-based data to x,y (point) form for the 2D scatter plot
-        const x_data = [];
-        const y_data = [];
-        const y2_data = [];
-        const y3_data = [];
-        dataObj.map((line) => {
-          // x_data.push(new Date(line.dt))
-          x_data.push(new Date(line.dt).valueOf());
-          // x_data.push(new Date(line.dt).toISOString().split("T")[0])
-          // const datestr = new Date(line.dt).toISOString().split("T")[0]
-          // const timestr = new Date(line.dt).toTimeString().split(" ")[0]
-          // x_data.push(`'${datestr} ${timestr}'`)
-          // x_data.push()
-      });
-        dataObj.map((line) => y_data.push(line.active_total));
-        dataObj.map((line) => y2_data.push(line.active_unlocked));
-        dataObj.map((line) => y3_data.push(line.active_locked));
+  // // calls to collect data from the postgres API (gelato.express)
+  // useEffect(() => {
+  //   getSolanaSupplyInfo();
+  // }, []);
+  // function getSolanaSupplyInfo() {
+  //   fetch(`${URL}/supply`)
+  //     .then((response) => {
+  //       return response.text();
+  //     })
+  //     .then((data) => {
+  //       const dataObj = JSON.parse(data);
+  //       // const console.log(dataObj)
+  //       // transposing the column-based data to x,y (point) form for the 2D scatter plot
+  //       const x_data = [];
+  //       const y_data = [];
+  //       const y2_data = [];
+  //       const y3_data = [];
+  //       dataObj.map((line) => {
+  //         // x_data.push(new Date(line.dt))
+  //         x_data.push(new Date(line.dt).valueOf());
+  //         // x_data.push(new Date(line.dt).toISOString().split("T")[0])
+  //         // const datestr = new Date(line.dt).toISOString().split("T")[0]
+  //         // const timestr = new Date(line.dt).toTimeString().split(" ")[0]
+  //         // x_data.push(`'${datestr} ${timestr}'`)
+  //         // x_data.push()
+  //     });
+  //       dataObj.map((line) => y_data.push(line.active_total));
+  //       dataObj.map((line) => y2_data.push(line.active_unlocked));
+  //       dataObj.map((line) => y3_data.push(line.active_locked));
 
-        setSupplyData([x_data, y_data, y2_data, y3_data]);
-      }
-    );
-  }
+  //       setSupplyData([x_data, y_data, y2_data, y3_data]);
+  //     }
+  //   );
+  // }
 
   const supplyAxes = ['active stake (total)', 'active stake (locked)', 'active stake (unlocked)'];
   const formatNumber = (number) => {
@@ -228,9 +228,9 @@ function Stake() {
     return colorArray[index];
   }
   useEffect(() => {
-    getExchangeData();
+    getStakeData();
   }, []);
-  async function getExchangeData() {
+  async function getStakeData() {
     // exchangeLookup.map(async (exchange) => {
       await fetch(`${URL}/supply`)
         .then((response) => {
@@ -263,8 +263,8 @@ function Stake() {
             // console.log(JSON.stringify(scatter));
             // filters out exchanges with empty data arrays
             if (Object.keys(scatter).length > 0) {
-              setSupplyScatter((oldSupplyData) => [
-                ...oldSupplyData,
+              setStakeScatter((oldStakeData) => [
+                ...oldStakeData,
                 // ['total', scatter],
                 [feature, scatter],
               ]);
@@ -275,7 +275,7 @@ function Stake() {
   }
   let colorIndex = 0;
   const data = {
-    datasets: supplyScatter.map((feature) => {
+    datasets: stakeScatter.map((feature) => {
       let color = getRandomColor(colorIndex);
       let myObject = {};
       myObject.label = feature[0];
@@ -468,29 +468,29 @@ function Stake() {
   const supplyCirculating = supplyData[2];
   const supplyNoncirculating = supplyData[3];
 
-  const supplyChartData = {
-    supplyLabels,
-    datasets: [
-      {
-        label: "Total Supply",
-        data: supplyTotal,
-        backgroundColor: "#FCFCFC",
-        stack: "stack0",
-      },
-      {
-        label: "Circulating",
-        data: supplyCirculating,
-        backgroundColor: "#3DDC97",
-        stack: "stack1",
-      },
-      {
-        label: "Non-Circulating",
-        data: supplyNoncirculating,
-        backgroundColor: "#FF7F50",
-        stack: "stack1",
-      },
-    ],
-  };
+  // const supplyChartData = {
+  //   supplyLabels,
+  //   datasets: [
+  //     {
+  //       label: "Total Supply",
+  //       data: supplyTotal,
+  //       backgroundColor: "#FCFCFC",
+  //       stack: "stack0",
+  //     },
+  //     {
+  //       label: "Circulating",
+  //       data: supplyCirculating,
+  //       backgroundColor: "#3DDC97",
+  //       stack: "stack1",
+  //     },
+  //     {
+  //       label: "Non-Circulating",
+  //       data: supplyNoncirculating,
+  //       backgroundColor: "#FF7F50",
+  //       stack: "stack1",
+  //     },
+  //   ],
+  // };
 
 
   const labels = inflowData[0];
@@ -611,7 +611,7 @@ function Stake() {
             Solana Stake Chart
          </Typography>
           <Divider sx={{ marginY: 2 }} />
-          {/* <Typography>{supplyScatter.map(feature => console.log(feature))}</Typography> */}
+          {/* <Typography>{stakeScatter.map(feature => console.log(feature))}</Typography> */}
           <Scatter options={options} data={data} />
           {/* <Bar options={supplyChartOptions} data={supplyChartData} /> */}
           <Divider sx={{ marginY: 2 }} />
