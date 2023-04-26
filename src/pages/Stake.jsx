@@ -14,7 +14,7 @@ import {
 } from "chart.js";
 
 // import chart devices
-import { Bar } from "react-chartjs-2";
+import { Scatter, Bar } from "react-chartjs-2";
 
 // add filtering to tables
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
@@ -49,6 +49,101 @@ ChartJS.register(
   ArcElement
 );
 
+export const options = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: "right", // as const,
+    },
+    title: {
+      display: true,
+      text: "On-Exchange Balances (SOL)",
+    },
+  },
+  elements: {
+    line: {
+      showLine: true,
+      backgroundColor: "#FFFFFF",
+    },
+    point: {
+      radius: 5,
+    },
+  },
+  scales: {
+    x: {
+      ticks: {
+        callback: function (value, index, values) {
+          return new Date(value).toISOString().split("T")[0];
+        },
+      },
+    },
+    y: {
+      type: "logarithmic",
+      min: 10000000,
+      ticks: {
+        autoSkip: true,
+        min: 100000000,
+        // callback: function (value, index, values) {
+        //   if (
+        //     value === 10000 ||
+        //     value === 100000 ||
+        //     value === 1000000 ||
+        //     value === 10000000
+        //   ) {
+        //     return value;
+        //   }
+        // },
+      },
+    },
+  },
+};
+
+export const supplyChartOptions = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: "top",
+    },
+    title: {
+      display: true,
+      text: "Solana Supply Data by Date",
+    },
+  },
+};
+
+// export const supplyChartOptions = {
+//   scales: {
+//     xAxes: [
+//       {
+//         type: 'time',
+//         time: {
+//           displayFormats: {
+//             second: 'YYYY-MM-DD HH:mm:ss'
+//           },
+//           tooltipFormat: 'YYYY-MM-DD HH:mm:ss',
+//         },
+//         ticks: {
+//           maxRotation: 0,
+//           autoSkip: true,
+//           maxTicksLimit: 10,
+//         },
+//         scaleLabel: {
+//           display: true,
+//           labelString: 'Date-Time (YYYY-MM-DD HH:mm:ss)',
+//         },
+//       },
+//     ],
+//     yAxes: [
+//       {
+//         scaleLabel: {
+//           display: true,
+//           labelString: 'Value',
+//         },
+//       },
+//     ],
+//   },
+// };
+
 export const inflowChartOptions = {
   responsive: true,
   plugins: {
@@ -62,11 +157,141 @@ export const inflowChartOptions = {
   },
 };
 
+const formatNumber = (number) => {
+  return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
+};
+
 function Stake() {
   const [tab, setTab] = useState(0);
   const [webhookGrid, setWebhookGrid] = useState([]);
+  const [supplyData, setSupplyData] = useState([]);
+  const [supplyScatter, setSupplyScatter] = useState([]);
+
 
   // calls to collect data from the postgres API (gelato.express)
+  useEffect(() => {
+    getSolanaSupplyInfo();
+  }, []);
+  function getSolanaSupplyInfo() {
+    fetch(`${URL}/supply`)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        const dataObj = JSON.parse(data);
+        // const console.log(dataObj)
+        // transposing the column-based data to x,y (point) form for the 2D scatter plot
+        const x_data = [];
+        const y_data = [];
+        const y2_data = [];
+        const y3_data = [];
+        dataObj.map((line) => {
+          // x_data.push(new Date(line.dt))
+          x_data.push(new Date(line.dt).valueOf());
+          // x_data.push(new Date(line.dt).toISOString().split("T")[0])
+          // const datestr = new Date(line.dt).toISOString().split("T")[0]
+          // const timestr = new Date(line.dt).toTimeString().split(" ")[0]
+          // x_data.push(`'${datestr} ${timestr}'`)
+          // x_data.push()
+      });
+        dataObj.map((line) => y_data.push(line.active_total));
+        dataObj.map((line) => y2_data.push(line.active_unlocked));
+        dataObj.map((line) => y3_data.push(line.active_locked));
+
+        setSupplyData([x_data, y_data, y2_data, y3_data]);
+      }
+    );
+  }
+
+  const supplyAxes = ['active stake (total)', 'active stake (locked)', 'active stake (unlocked)'];
+  const formatNumber = (number) => {
+    return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
+  };
+  function getRandomColor(index) {
+    const colorArray = [
+      "#FCFCFC",
+      "#FF7F50",
+      "#3DDC97",
+      // "#46237A",
+      // "#256EFF",
+      // "#1446a0",
+      // "#99D17B",
+      // "#3C3C3B",
+      // "#B4436C",
+      // "#9D8DF1",
+      // "#5FAD56",
+      // "#4D9078",
+      // "#645DD7",
+      // "#B3FFFC",
+    ];
+    // const index = Math.floor(Math.random() * (colorArray.length - 0 + 1) + 0)
+    return colorArray[index];
+  }
+  useEffect(() => {
+    getExchangeData();
+  }, []);
+  async function getExchangeData() {
+    // exchangeLookup.map(async (exchange) => {
+      await fetch(`${URL}/supply`)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          // transposing the column-based data to x,y (point) form for the 2D scatter plot
+          const dataObj = JSON.parse(data);
+          // console.log(JSON.stringify(dataObj));
+
+          const x_data = [];
+          const y_data = [];
+          const y2_data = [];
+          const y3_data = [];
+          const y4_data = [];
+          dataObj.map((line) => x_data.push(line.dt));
+          dataObj.map((line) => y_data.push(line.active_total));
+          dataObj.map((line) => y2_data.push(line.active_locked));
+          dataObj.map((line) => y3_data.push(line.active_unlocked));
+          // dataObj.map((line) => y4_data.push(line.inflation));
+          const combined_ydata = [y_data, y2_data, y3_data];
+
+          supplyAxes.map((feature, feature_index) => {
+            const scatter = x_data.map((date, index) => {
+              let myObject = {};
+              myObject.x = new Date(date).valueOf();
+              myObject.y = combined_ydata[feature_index][index];
+              return myObject;
+            });
+            // console.log(JSON.stringify(scatter));
+            // filters out exchanges with empty data arrays
+            if (Object.keys(scatter).length > 0) {
+              setSupplyScatter((oldSupplyData) => [
+                ...oldSupplyData,
+                // ['total', scatter],
+                [feature, scatter],
+              ]);
+            }
+          });
+        // });
+    });
+  }
+  let colorIndex = 0;
+  const data = {
+    datasets: supplyScatter.map((feature) => {
+      let color = getRandomColor(colorIndex);
+      let myObject = {};
+      myObject.label = feature[0];
+      myObject.data = feature[1];
+      myObject.borderColor = `${color}`;
+      myObject.pointRadius = 1;
+      myObject.pointHoverRadius = 5;
+      myObject.fill = false;
+      myObject.tension = 0;
+      myObject.showLine = true;
+      myObject.backgroundColor = `${color}`;
+      colorIndex += 1;
+      return myObject;
+    }),
+  };
+
   useEffect(() => {
     getWebhookEvents();
   }, []);
@@ -111,10 +336,6 @@ function Stake() {
         setWebhookGrid(grid);
       });
   }
-
-  const formatNumber = (number) => {
-    return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
-  };
   
   const webhookGridColumns = [
     { field: "program", headerName: "Program", GridColDef: "flex", flex: 1 },
@@ -231,8 +452,8 @@ function Stake() {
         const y2_data = [];
         const y3_data = [];
         dataObj.map((line) =>
-          x_data.push(new Date(line.date))
-          // x_data.push(new Date(line.dt).toISOString().split("T")[0])
+          // x_data.push(new Date(line.date))
+          x_data.push(new Date(line.date).toISOString().split("T")[0])
         );
         dataObj.map((line) => y_data.push(line.deposit));
         dataObj.map((line) => y2_data.push(line.withdraw));
@@ -241,6 +462,36 @@ function Stake() {
         setInflowData([x_data, y_data, y2_data, y3_data]);
       });
   }
+
+  const supplyLabels = supplyData[0];
+  const supplyTotal = supplyData[1];
+  const supplyCirculating = supplyData[2];
+  const supplyNoncirculating = supplyData[3];
+
+  const supplyChartData = {
+    supplyLabels,
+    datasets: [
+      {
+        label: "Total Supply",
+        data: supplyTotal,
+        backgroundColor: "#FCFCFC",
+        stack: "stack0",
+      },
+      {
+        label: "Circulating",
+        data: supplyCirculating,
+        backgroundColor: "#3DDC97",
+        stack: "stack1",
+      },
+      {
+        label: "Non-Circulating",
+        data: supplyNoncirculating,
+        backgroundColor: "#FF7F50",
+        stack: "stack1",
+      },
+    ],
+  };
+
 
   const labels = inflowData[0];
   const inData = inflowData[1];
@@ -276,6 +527,7 @@ function Stake() {
       <Tabs value={tab} onChange={(_, val) => setTab(val)}>
         <Tab label="Stake Deposits/Withdrawals" />
         <Tab label="Stake Transfer Log" />
+        <Tab label="Active Stake" />
       </Tabs>
 
       {tab === 0 && (
@@ -339,6 +591,29 @@ function Stake() {
             columns={webhookGridColumns}
             components={{ Toolbar: GridToolbar }}
           />
+          <Divider sx={{ marginY: 2 }} />
+          </div>
+        </Paper>
+      )}
+
+      {tab === 2 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <div style={{ height: '100%' }}>
+          <Typography variant="h5">
+            Solana Stake Chart
+         </Typography>
+          <Divider sx={{ marginY: 2 }} />
+          {/* <Typography>{supplyScatter.map(feature => console.log(feature))}</Typography> */}
+          <Scatter options={options} data={data} />
+          {/* <Bar options={supplyChartOptions} data={supplyChartData} /> */}
           <Divider sx={{ marginY: 2 }} />
           </div>
         </Paper>

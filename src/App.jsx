@@ -46,7 +46,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/sol" element={<Sol />} />
                 <Route path="/stake" element={<Stake />} />
-                <Route path="/spl" element={<Spl />} />
+                {/* <Route path="/spl" element={<Spl />} /> */}
                 <Route path="/wallets" element={<Wallets />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/about" element={<About />} />

@@ -31,9 +31,9 @@ function Header() {
         <Button href="/stake" color="secondary">
           STAKE
         </Button>
-        <Button href="/spl" color="secondary">
+        {/* <Button href="/spl" color="secondary">
           SPL
-        </Button>
+        </Button> */}
         <Button href="/wallets" color="secondary">
           Wallets
         </Button>
