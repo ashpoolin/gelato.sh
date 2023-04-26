@@ -109,6 +109,34 @@ export const inflowChartOptions = {
       text: "Combined Exchange Flows by Date",
     },
   },
+  scales: {
+    x: {
+      ticks: {
+        callback: function (value, index, values) {
+          return new Date(value).toISOString().split("T")[0];
+        },
+      },
+    },
+    y: {
+      // type: "logarithmic",
+      min: -5000000,
+      max: 5000000,
+      // ticks: {
+      //   autoSkip: true,
+      //   min: 10000,
+      //   callback: function (value, index, values) {
+      //     if (
+      //       value === 10000 ||
+      //       value === 100000 ||
+      //       value === 1000000 ||
+      //       value === 10000000
+      //     ) {
+      //       return value;
+      //     }
+      //   },
+      // },
+    },
+  },
 };
 
 function Sol() {
