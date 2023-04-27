@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  TimeScale
 } from "chart.js";
 
 // import chart devices
@@ -46,7 +47,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  TimeScale
 );
 
 export const options = {
@@ -71,15 +73,35 @@ export const options = {
   },
   scales: {
     x: {
-      ticks: {
-        callback: function (value, index, values) {
-          return new Date(value).toISOString().split("T")[0];
+      type: 'time',
+      time: {
+        unit: 'day',
+        displayFormats: {
+          millisecond: 'yyyy-mm-dd hh:mm:ss',
+          second: 'yyyy-mm-dd hh:mm:ss',
+          minute: 'yyyy-mm-dd hh:mm',
+          hour: 'yyyy-mm-dd hh:00',
+          day: 'yyyy-mm-dd',
+          week: 'yyyy-mm-dd',
+          month: 'yyyy-mm',
+          quarter: 'yyyy-QQ',
+          year: 'yyyy'
         },
+        tooltipFormat: 'yyyy-mm-dd hh:mm:ss'
       },
+      scaleLabel: {
+        display: true,
+        labelString: 'Date'
+      },
+      ticks: {
+        callback: function(value, index, values) {
+          return new Date(value).toISOString().split("T")[0];
+        }
+      }
     },
     y: {
       type: "logarithmic",
-      min: 10000,
+      min: 100000,
       ticks: {
         autoSkip: true,
         min: 10000,
@@ -217,14 +239,16 @@ function Sol() {
           dataObj.map((line) => x_data.push(line.date_trunc));
           dataObj.map((line) => y_data.push(line.solbalance));
 
+          const y_avg = y_data.reduce((partialSum, a) => partialSum + a / y_data.length, 0) ;
+          console.log(y_avg);
           const scatter = x_data.map((date, index) => {
             let myObject = {};
             myObject.x = new Date(date).valueOf();
             myObject.y = y_data[index];
             return myObject;
           });
-          // filters out exchanges with empty data arrays
-          if (Object.keys(scatter).length > 0) {
+          // filters out exchanges with empty data arrays & avg balances <100k SOL
+          if (Object.keys(scatter).length > 0 && y_avg > 100000) {
             setExchangeData((oldExchangeData) => [
               ...oldExchangeData,
               [exchange[0], scatter],
