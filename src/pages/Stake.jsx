@@ -11,10 +11,13 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  TimeScale
 } from "chart.js";
 
 // import chart devices
 import { Scatter, Bar } from "react-chartjs-2";
+import 'chartjs-adapter-date-fns'; // Import the date-fns adapter for Chart.js
+
 
 // add filtering to tables
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
@@ -46,7 +49,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  TimeScale
 );
 
 export const options = {
@@ -70,12 +74,55 @@ export const options = {
     },
   },
   scales: {
+    // xAxes: [{
+    //   type: 'time',
+    //   time: {
+    //     displayFormats: {
+    //       millisecond: 'yyyy-mm-dd hh:mm:ss.SSS',
+    //       second: 'yyyy-mm-dd hh:mm:ss',
+    //       minute: 'yyyy-mm-dd hh:mm',
+    //       hour: 'yyyy-mm-dd hh:00',
+    //       day: 'yyyy-mm-dd',
+    //       week: 'yyyy-mm-dd',
+    //       month: 'yyyy-mm',
+    //       quarter: 'yyyy-QQ',
+    //       year: 'yyyy'
+    //     }
+    //   },
+    //   scaleLabel: {
+    //     display: true,
+    //     labelString: 'Date'
+    //   },
+    //   ticks: {
+    //     callback: function (value, index, values) {
+    //       return new Date(value).toISOString().split("T")[0];
+    //     },
+    //     autoSkip: true,
+    //     maxTicksLimit: 20 // set the maximum number of ticks to display
+    //   }
+    // }],
     x: {
-      ticks: {
-        callback: function (value, index, values) {
-          return new Date(value).toISOString().split("T")[0];
+      type: 'time',
+      time: {
+        unit: 'day',
+        displayFormats: {
+          millisecond: 'yyyy-mm-dd hh:mm:ss',
+          second: 'yyyy-mm-dd hh:mm:ss',
+          minute: 'yyyy-mm-dd hh:mm',
+          hour: 'yyyy-mm-dd hh:00',
+          day: 'yyyy-mm-dd',
+          week: 'yyyy-mm-dd',
+          month: 'yyyy-mm',
+          quarter: 'yyyy-QQ',
+          year: 'yyyy'
         },
+        tooltipFormat: 'yyyy-mm-dd hh:mm:ss'
       },
+      ticks: {
+        callback: function(value, index, values) {
+          return new Date(value).toISOString().split("T")[0];
+        }
+      }
     },
     y: {
       type: "logarithmic",
@@ -203,7 +250,7 @@ function Stake() {
   //   );
   // }
 
-  const supplyAxes = ['active stake (total)', 'active stake (locked)', 'active stake (unlocked)'];
+  const supplyAxes = ['Total', 'Locked', 'Unlocked'];
   const formatNumber = (number) => {
     return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
   };
@@ -616,6 +663,26 @@ function Stake() {
           {/* <Bar options={supplyChartOptions} data={supplyChartData} /> */}
           <Divider sx={{ marginY: 2 }} />
           </div>
+          <Box sx={{ paddingY: 3 }}>
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>About this chart</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                This chart display only the active stake, shown as the locked stake, unlocked stake, and the total (locked + unlocked).
+                The locked stake is identified as any stake account with a lockup unixTimestamp > current date. Note that the total balance and the delegated stake
+                can be greater than the active stake, since a stake account can contain coins that are undelegated, or delegated but inactive.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          </Box>
         </Paper>
       )}
     </Stack>
