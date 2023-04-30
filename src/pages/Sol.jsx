@@ -119,6 +119,77 @@ export const options = {
     },
   },
 };
+export const optionsCexTotal = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: "right", // as const,
+    },
+    title: {
+      display: true,
+      text: "CEX Total Balance (SOL)",
+    },
+  },
+  elements: {
+    line: {
+      showLine: true,
+      backgroundColor: "#FFFFFF",
+    },
+    point: {
+      radius: 5,
+    },
+  },
+  scales: {
+    x: {
+      type: 'time',
+      time: {
+        unit: 'day',
+        displayFormats: {
+          millisecond: 'yyyy-mm-dd hh:mm:ss',
+          second: 'yyyy-mm-dd hh:mm:ss',
+          minute: 'yyyy-mm-dd hh:mm',
+          hour: 'yyyy-mm-dd hh:00',
+          day: 'yyyy-mm-dd',
+          week: 'yyyy-mm-dd',
+          month: 'yyyy-mm',
+          quarter: 'yyyy-QQ',
+          year: 'yyyy'
+        },
+        tooltipFormat: 'yyyy-mm-dd hh:mm:ss'
+      },
+      ticks: {
+        callback: function(value, index, values) {
+          return new Date(value).toISOString().split("T")[0];
+        }
+      }
+    },
+    y: {
+      type: "linear",
+      position: "left",
+      // type: "logarithmic",
+      // min: 10000000,
+      // ticks: {
+        // autoSkip: true,
+        // min: 100000000,
+        // callback: function (value, index, values) {
+        //   if (
+        //     value === 10000 ||
+        //     value === 100000 ||
+        //     value === 1000000 ||
+        //     value === 10000000
+        //   ) {
+        //     return value;
+        //   }
+        // },
+      // },
+    },
+    y2: {
+      type: "linear",
+      position: "right",
+    }
+  },
+};
+
 
 export const inflowChartOptions = {
   responsive: true,
@@ -164,6 +235,7 @@ export const inflowChartOptions = {
 function Sol() {
   const [tab, setTab] = useState(0);
   const [exchangeData, setExchangeData] = useState([]);
+  const [onExchangeTotalData, setOnExchangeTotalData] = useState([]);
   const [exchangeLookup, setExchangeLookup] = useState([
     ["Binance_hot", "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9"],
     ["binance_cold", "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"],
@@ -255,6 +327,54 @@ function Sol() {
             ]);
           }
         });
+    });
+  }
+
+  const totalAxes = ['Total', 'Delta', 'Cumulative'];
+  useEffect(() => {
+    getOnExchangeTotal();
+  }, []);
+  async function getOnExchangeTotal() {
+    // exchangeLookup.map(async (exchange) => {
+      await fetch(`${URL}/total`)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          // transposing the column-based data to x,y (point) form for the 2D scatter plot
+          const dataObj = JSON.parse(data);
+          // console.log(JSON.stringify(dataObj));
+
+          const x_data = [];
+          const y_data = [];
+          const y2_data = [];
+          const y3_data = [];
+          dataObj.map((line) => x_data.push(line.dt));
+          dataObj.map((line) => y_data.push(line.total));
+          dataObj.map((line) => y2_data.push(line.delta));
+          dataObj.map((line) => y3_data.push(line.cumulative));
+          const combined_ydata = [y_data, y2_data, y3_data];
+
+          totalAxes.map((feature, feature_index) => {
+            const scatter = x_data.map((date, index) => {
+              let myObject = {};
+              myObject.x = new Date(date).valueOf();
+              myObject.y = combined_ydata[feature_index][index];
+              return myObject;
+            });
+            // console.log(JSON.stringify(scatter));
+            // filters out exchanges with empty data arrays
+            if (Object.keys(scatter).length > 0) {
+  // const [onExchangeTotalData, ] = useState([]);
+
+                setOnExchangeTotalData((oldTotalsData) => [
+                ...oldTotalsData,
+                // ['total', scatter],
+                [feature, scatter],
+              ]);
+            }
+          });
+        // });
     });
   }
 
@@ -548,6 +668,26 @@ function Sol() {
     }),
   };
 
+  colorIndex = 0;
+  const onExchangeData = {
+    datasets: onExchangeTotalData.map((feature) => {
+      let color = getRandomColor(colorIndex);
+      let myObject = {};
+      myObject.label = feature[0];
+      myObject.data = feature[1];
+      myObject.borderColor = `${color}`;
+      myObject.yAxisID = ((colorIndex == 0) ? 'y' : 'y2');
+      myObject.pointRadius = 1;
+      myObject.pointHoverRadius = 5;
+      myObject.fill = false;
+      myObject.tension = 0;
+      myObject.showLine = true;
+      myObject.backgroundColor = `${color}`;
+      colorIndex += 1;
+      return myObject;
+    }),
+  };
+
   const pieData = {
     labels: balanceData.map((row) => row.label),
     datasets: [
@@ -598,7 +738,8 @@ function Sol() {
         <Tab label="Whale Transfers" />
         <Tab label="Total Inflows/Outflows" />
         <Tab label="On-Exchange Balance Summary" />
-        <Tab label="Percent Share" />
+        {/* <Tab label="Percent Share" /> */}
+        <Tab label="Total CEX Balance" />
       </Tabs>
 
       {tab === 0 && (
@@ -708,7 +849,7 @@ function Sol() {
         </Paper>
       )}
 
-      {tab === 4 && (
+      {/* {tab === 4 && (
         <Paper
           sx={{
             padding: 3,
@@ -722,6 +863,47 @@ function Sol() {
           <Divider sx={{ marginY: 2 }} />
           <Doughnut options={pieOptions} data={pieData} />
           <Divider sx={{ marginY: 2 }} />
+        </Paper>
+      )} */}
+      {tab === 4 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <Typography variant="h5">Total Exchange Balance</Typography>
+          <Divider sx={{ marginY: 2 }} />
+          <Scatter options={optionsCexTotal} data={onExchangeData} />
+          {/* <Doughnut options={pieOptions} data={pieData} /> */}
+          <Divider sx={{ marginY: 2 }} />
+          <Box sx={{ paddingY: 3 }}>
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>Total Exchange Balance</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+              Tracking coin balances on exchanges can give a clue into what's
+              happening with token distribution. But watching individual exchange
+              balances is complicated by the frequent cross-CEX transfers done by whales.
+              Rather than monitor individual CEX balances, the Total Exchange Balance tracker 
+              takes the sum of the latest exchange balances to create a total. Next, the chart 
+              displays the hourly change ("delta"), and a rolling 24-hour cumulative change ("cumulative").
+              In this way, you can monitor the *net* inflows/outflows at the boundary of all exchanges. 
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          </Box>
         </Paper>
       )}
     </Stack>
