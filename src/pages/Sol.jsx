@@ -737,9 +737,9 @@ function Sol() {
         <Tab label="On-Exchange Balances" />
         <Tab label="Whale Transfers" />
         <Tab label="Total Inflows/Outflows" />
+        <Tab label="Total CEX Balance" />
         <Tab label="On-Exchange Balance Summary" />
         {/* <Tab label="Percent Share" /> */}
-        <Tab label="Total CEX Balance" />
       </Tabs>
 
       {tab === 0 && (
@@ -826,8 +826,50 @@ function Sol() {
           <Divider sx={{ marginY: 2 }} />
         </Paper>
       )}
-
       {tab === 3 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <Typography variant="h5">Total Exchange Balance</Typography>
+          <Divider sx={{ marginY: 2 }} />
+          <Scatter options={optionsCexTotal} data={onExchangeData} />
+          {/* <Doughnut options={pieOptions} data={pieData} /> */}
+          <Divider sx={{ marginY: 2 }} />
+          <Box sx={{ paddingY: 3 }}>
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>Total Exchange Balance</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+              Tracking coin balances on exchanges can give a clue into what's
+              happening with token distribution. But watching individual exchange
+              balances is complicated by the frequent cross-CEX transfers done by whales.
+              Rather than monitor individual CEX balances, the Total Exchange Balance tracker 
+              takes the sum of the latest exchange balances to create a total. Next, the chart 
+              displays the hourly change ("delta"), and a rolling 24-hour cumulative change ("cumulative").
+              In this way, you can monitor the *net* inflows/outflows at the boundary of all exchanges. See 
+              the on-exchange balance summary tab to see which addresses are included in this total balance 
+              figure. 
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          </Box>
+        </Paper>
+      )}
+      {tab === 4 && (
         <Paper
           sx={{
             padding: 3,
@@ -865,47 +907,6 @@ function Sol() {
           <Divider sx={{ marginY: 2 }} />
         </Paper>
       )} */}
-      {tab === 4 && (
-        <Paper
-          sx={{
-            padding: 3,
-            margin: 3,
-            textAlign: "center",
-            width: "100%",
-            minHeight: "100%",
-          }}
-        >
-          <Typography variant="h5">Total Exchange Balance</Typography>
-          <Divider sx={{ marginY: 2 }} />
-          <Scatter options={optionsCexTotal} data={onExchangeData} />
-          {/* <Doughnut options={pieOptions} data={pieData} /> */}
-          <Divider sx={{ marginY: 2 }} />
-          <Box sx={{ paddingY: 3 }}>
-          <Accordion
-            elevation={2}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1a-content"
-              id="panel1a-header"
-            >
-            <Typography>Total Exchange Balance</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography>
-              Tracking coin balances on exchanges can give a clue into what's
-              happening with token distribution. But watching individual exchange
-              balances is complicated by the frequent cross-CEX transfers done by whales.
-              Rather than monitor individual CEX balances, the Total Exchange Balance tracker 
-              takes the sum of the latest exchange balances to create a total. Next, the chart 
-              displays the hourly change ("delta"), and a rolling 24-hour cumulative change ("cumulative").
-              In this way, you can monitor the *net* inflows/outflows at the boundary of all exchanges. 
-              </Typography>
-            </AccordionDetails>
-          </Accordion>
-          </Box>
-        </Paper>
-      )}
     </Stack>
   );
 }
