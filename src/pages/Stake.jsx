@@ -125,23 +125,27 @@ export const options = {
       }
     },
     y: {
-      type: "logarithmic",
-      min: 10000000,
-      ticks: {
-        autoSkip: true,
-        min: 100000000,
-        // callback: function (value, index, values) {
-        //   if (
-        //     value === 10000 ||
-        //     value === 100000 ||
-        //     value === 1000000 ||
-        //     value === 10000000
-        //   ) {
-        //     return value;
-        //   }
-        // },
-      },
+      type: "linear",
+      // min: 10000000,
+      // ticks: {
+      //   autoSkip: true,
+      //   min: 100000000,
+      //   // callback: function (value, index, values) {
+      //   //   if (
+      //   //     value === 10000 ||
+      //   //     value === 100000 ||
+      //   //     value === 1000000 ||
+      //   //     value === 10000000
+      //   //   ) {
+      //   //     return value;
+      //   //   }
+      //   // },
+      // },
     },
+    y2: {
+      type: "linear",
+      position: "right",
+    }
   },
 };
 
@@ -329,6 +333,7 @@ function Stake() {
       myObject.data = feature[1];
       myObject.borderColor = `${color}`;
       myObject.pointRadius = 1;
+      myObject.yAxisID = ((colorIndex == 1) ? 'y2' : 'y');
       myObject.pointHoverRadius = 5;
       myObject.fill = false;
       myObject.tension = 0;
