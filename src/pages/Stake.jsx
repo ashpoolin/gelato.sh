@@ -106,8 +106,8 @@ export const options = {
       time: {
         unit: 'day',
         displayFormats: {
-          millisecond: 'yyyy-mm-dd hh:mm:ss',
-          second: 'yyyy-mm-dd hh:mm:ss',
+          millisecond: 'yyyy-mm-dd hh:mm:ss.SSS',
+          second: 'yyyy-MM-dd hh:mm:ss',
           minute: 'yyyy-mm-dd hh:mm',
           hour: 'yyyy-mm-dd hh:00',
           day: 'yyyy-mm-dd',
@@ -116,7 +116,7 @@ export const options = {
           quarter: 'yyyy-QQ',
           year: 'yyyy'
         },
-        tooltipFormat: 'yyyy-mm-dd hh:mm:ss'
+        tooltipFormat: 'yyyy-MM-dd hh:mm:ss'
       },
       ticks: {
         callback: function(value, index, values) {

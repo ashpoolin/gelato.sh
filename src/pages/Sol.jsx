@@ -78,7 +78,7 @@ export const options = {
         unit: 'day',
         displayFormats: {
           millisecond: 'yyyy-mm-dd hh:mm:ss',
-          second: 'yyyy-mm-dd hh:mm:ss',
+          second: 'yyyy-MM-dd hh:mm:ss', // cAse SenSitIVe
           minute: 'yyyy-mm-dd hh:mm',
           hour: 'yyyy-mm-dd hh:00',
           day: 'yyyy-mm-dd',
@@ -87,7 +87,7 @@ export const options = {
           quarter: 'yyyy-QQ',
           year: 'yyyy'
         },
-        tooltipFormat: 'yyyy-mm-dd hh:mm:ss'
+        tooltipFormat: 'yyyy-MM-dd hh:mm:ss' // cAse SenSitIVe
       },
       scaleLabel: {
         display: true,
@@ -146,7 +146,7 @@ export const optionsCexTotal = {
         unit: 'day',
         displayFormats: {
           millisecond: 'yyyy-mm-dd hh:mm:ss',
-          second: 'yyyy-mm-dd hh:mm:ss',
+          second: 'yyyy-MM-dd hh:mm:ss', // cAse SenSitIVe
           minute: 'yyyy-mm-dd hh:mm',
           hour: 'yyyy-mm-dd hh:00',
           day: 'yyyy-mm-dd',
@@ -155,7 +155,7 @@ export const optionsCexTotal = {
           quarter: 'yyyy-QQ',
           year: 'yyyy'
         },
-        tooltipFormat: 'yyyy-mm-dd hh:mm:ss'
+        tooltipFormat: 'yyyy-MM-dd hh:mm:ss' // cAse SenSitIVe
       },
       ticks: {
         callback: function(value, index, values) {
