@@ -18,7 +18,6 @@ import {
 import { Scatter, Bar } from "react-chartjs-2";
 import 'chartjs-adapter-date-fns'; // Import the date-fns adapter for Chart.js
 
-
 // add filtering to tables
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { 
@@ -31,7 +30,8 @@ import {
   Divider, 
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box } from "@mui/system";
@@ -74,40 +74,13 @@ export const options = {
     },
   },
   scales: {
-    // xAxes: [{
-    //   type: 'time',
-    //   time: {
-    //     displayFormats: {
-    //       millisecond: 'yyyy-mm-dd hh:mm:ss.SSS',
-    //       second: 'yyyy-mm-dd hh:mm:ss',
-    //       minute: 'yyyy-mm-dd hh:mm',
-    //       hour: 'yyyy-mm-dd hh:00',
-    //       day: 'yyyy-mm-dd',
-    //       week: 'yyyy-mm-dd',
-    //       month: 'yyyy-mm',
-    //       quarter: 'yyyy-QQ',
-    //       year: 'yyyy'
-    //     }
-    //   },
-    //   scaleLabel: {
-    //     display: true,
-    //     labelString: 'Date'
-    //   },
-    //   ticks: {
-    //     callback: function (value, index, values) {
-    //       return new Date(value).toISOString().split("T")[0];
-    //     },
-    //     autoSkip: true,
-    //     maxTicksLimit: 20 // set the maximum number of ticks to display
-    //   }
-    // }],
     x: {
       type: 'time',
       time: {
         unit: 'day',
         displayFormats: {
           millisecond: 'yyyy-mm-dd hh:mm:ss.SSS',
-          second: 'yyyy-MM-dd hh:mm:ss',
+          second: 'yyyy-MM-dd hh:mm:ss', // cAse SenSitIVe
           minute: 'yyyy-mm-dd hh:mm',
           hour: 'yyyy-mm-dd hh:00',
           day: 'yyyy-mm-dd',
@@ -116,7 +89,7 @@ export const options = {
           quarter: 'yyyy-QQ',
           year: 'yyyy'
         },
-        tooltipFormat: 'yyyy-MM-dd hh:mm:ss'
+        tooltipFormat: 'yyyy-MM-dd hh:mm:ss' // cAse SenSitIVe
       },
       ticks: {
         callback: function(value, index, values) {
@@ -149,51 +122,61 @@ export const options = {
   },
 };
 
-export const supplyChartOptions = {
+export const supplyOptions = {
   responsive: true,
   plugins: {
     legend: {
-      position: "top",
+      position: "right", // as const,
     },
     title: {
       display: true,
-      text: "Solana Supply Data by Date",
+      text: "Solana Supply Data (SOL)",
     },
   },
+  elements: {
+    line: {
+      showLine: true,
+      backgroundColor: "#FFFFFF",
+    },
+    point: {
+      radius: 5,
+    },
+  },
+  scales: {
+    x: {
+      type: 'time',
+      time: {
+        unit: 'day',
+        displayFormats: {
+          millisecond: 'yyyy-mm-dd hh:mm:ss.SSS',
+          second: 'yyyy-MM-dd hh:mm:ss', // cAse SenSitIVe
+          minute: 'yyyy-mm-dd hh:mm',
+          hour: 'yyyy-mm-dd hh:00',
+          day: 'yyyy-mm-dd',
+          week: 'yyyy-mm-dd',
+          month: 'yyyy-mm',
+          quarter: 'yyyy-QQ',
+          year: 'yyyy'
+        },
+        tooltipFormat: 'yyyy-MM-dd hh:mm:ss' // cAse SenSitIVe
+      },
+      ticks: {
+        callback: function(value, index, values) {
+          return new Date(value).toISOString().split("T")[0];
+        }
+      }
+    },
+    y: {
+      type: "linear",
+      min: 390000000,
+      max: 550000000,
+    },
+    y2: {
+      type: "linear",
+      position: "right",
+    }
+  },
 };
-
-// export const supplyChartOptions = {
-//   scales: {
-//     xAxes: [
-//       {
-//         type: 'time',
-//         time: {
-//           displayFormats: {
-//             second: 'YYYY-MM-DD HH:mm:ss'
-//           },
-//           tooltipFormat: 'YYYY-MM-DD HH:mm:ss',
-//         },
-//         ticks: {
-//           maxRotation: 0,
-//           autoSkip: true,
-//           maxTicksLimit: 10,
-//         },
-//         scaleLabel: {
-//           display: true,
-//           labelString: 'Date-Time (YYYY-MM-DD HH:mm:ss)',
-//         },
-//       },
-//     ],
-//     yAxes: [
-//       {
-//         scaleLabel: {
-//           display: true,
-//           labelString: 'Value',
-//         },
-//       },
-//     ],
-//   },
-// };
 
 export const inflowChartOptions = {
   responsive: true,
@@ -215,46 +198,13 @@ const formatNumber = (number) => {
 function Stake() {
   const [tab, setTab] = useState(0);
   const [webhookGrid, setWebhookGrid] = useState([]);
-  const [supplyData, setSupplyData] = useState([]);
+  // const [supplyData, setSupplyData] = useState([]);
   const [stakeScatter, setStakeScatter] = useState([]);
+  const [supplyScatter, setSupplyScatter] = useState([]);
+  const [supplySnapshot, setSupplySnapshot] = useState([]);
 
-
-  // // calls to collect data from the postgres API (gelato.express)
-  // useEffect(() => {
-  //   getSolanaSupplyInfo();
-  // }, []);
-  // function getSolanaSupplyInfo() {
-  //   fetch(`${URL}/supply`)
-  //     .then((response) => {
-  //       return response.text();
-  //     })
-  //     .then((data) => {
-  //       const dataObj = JSON.parse(data);
-  //       // const console.log(dataObj)
-  //       // transposing the column-based data to x,y (point) form for the 2D scatter plot
-  //       const x_data = [];
-  //       const y_data = [];
-  //       const y2_data = [];
-  //       const y3_data = [];
-  //       dataObj.map((line) => {
-  //         // x_data.push(new Date(line.dt))
-  //         x_data.push(new Date(line.dt).valueOf());
-  //         // x_data.push(new Date(line.dt).toISOString().split("T")[0])
-  //         // const datestr = new Date(line.dt).toISOString().split("T")[0]
-  //         // const timestr = new Date(line.dt).toTimeString().split(" ")[0]
-  //         // x_data.push(`'${datestr} ${timestr}'`)
-  //         // x_data.push()
-  //     });
-  //       dataObj.map((line) => y_data.push(line.active_total));
-  //       dataObj.map((line) => y2_data.push(line.active_unlocked));
-  //       dataObj.map((line) => y3_data.push(line.active_locked));
-
-  //       setSupplyData([x_data, y_data, y2_data, y3_data]);
-  //     }
-  //   );
-  // }
-
-  const supplyAxes = ['Total', 'Locked', 'Unlocked'];
+  const stakeAxes = ['Total', 'Locked', 'Unlocked'];
+  const supplyAxes = ['Total', 'Uncirculating', 'Circulating'];
   const formatNumber = (number) => {
     return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
   };
@@ -297,14 +247,19 @@ function Stake() {
           const y2_data = [];
           const y3_data = [];
           const y4_data = [];
+
+          // Get the latest (last) item from the object to display in the "Fact Facts" table
+          const snapshot = dataObj[ Object.keys(dataObj).pop() ];
+          // const snapshot = dataObj[ Object.keys(dataObj).sort().pop() ];
+          setSupplySnapshot(snapshot)
+
           dataObj.map((line) => x_data.push(line.dt));
           dataObj.map((line) => y_data.push(line.active_total));
           dataObj.map((line) => y2_data.push(line.active_locked));
           dataObj.map((line) => y3_data.push(line.active_unlocked));
-          // dataObj.map((line) => y4_data.push(line.inflation));
           const combined_ydata = [y_data, y2_data, y3_data];
 
-          supplyAxes.map((feature, feature_index) => {
+          stakeAxes.map((feature, feature_index) => {
             const scatter = x_data.map((date, index) => {
               let myObject = {};
               myObject.x = new Date(date).valueOf();
@@ -327,6 +282,72 @@ function Stake() {
   let colorIndex = 0;
   const data = {
     datasets: stakeScatter.map((feature) => {
+      let color = getRandomColor(colorIndex);
+      let myObject = {};
+      myObject.label = feature[0];
+      myObject.data = feature[1];
+      myObject.borderColor = `${color}`;
+      myObject.pointRadius = 1;
+      myObject.yAxisID = ((colorIndex == 1) ? 'y2' : 'y');
+      myObject.pointHoverRadius = 5;
+      myObject.fill = false;
+      myObject.tension = 0;
+      myObject.showLine = true;
+      myObject.backgroundColor = `${color}`;
+      colorIndex += 1;
+      return myObject;
+    }),
+  };
+
+  useEffect(() => {
+    getSupplyData();
+  }, []);
+  async function getSupplyData() {
+    // exchangeLookup.map(async (exchange) => {
+      await fetch(`${URL}/supply`)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          // transposing the column-based data to x,y (point) form for the 2D scatter plot
+          const dataObj = JSON.parse(data);
+          // console.log(JSON.stringify(dataObj));
+
+          const x_data = [];
+          const y_data = [];
+          const y2_data = [];
+          const y3_data = [];
+          const y4_data = [];
+          dataObj.map((line) => x_data.push(line.dt));
+          dataObj.map((line) => y_data.push(line.total_supply));
+          dataObj.map((line) => y2_data.push(line.noncirculating_supply));
+          dataObj.map((line) => y3_data.push(line.circulating_supply));
+          // dataObj.map((line) => y4_data.push(line.inflation));
+          const combined_ydata = [y_data, y2_data, y3_data];
+
+          supplyAxes.map((feature, feature_index) => {
+            const scatter = x_data.map((date, index) => {
+              let myObject = {};
+              myObject.x = new Date(date).valueOf();
+              myObject.y = combined_ydata[feature_index][index];
+              return myObject;
+            });
+            // console.log(JSON.stringify(scatter));
+            // filters out exchanges with empty data arrays
+            if (Object.keys(scatter).length > 0) {
+              setSupplyScatter((oldSupplyData) => [
+                ...oldSupplyData,
+                // ['total', scatter],
+                [feature, scatter],
+              ]);
+            }
+          });
+        // });
+    });
+  }
+  colorIndex = 0;
+  const supplyData = {
+    datasets: supplyScatter.map((feature) => {
       let color = getRandomColor(colorIndex);
       let myObject = {};
       myObject.label = feature[0];
@@ -515,36 +536,6 @@ function Stake() {
       });
   }
 
-  const supplyLabels = supplyData[0];
-  const supplyTotal = supplyData[1];
-  const supplyCirculating = supplyData[2];
-  const supplyNoncirculating = supplyData[3];
-
-  // const supplyChartData = {
-  //   supplyLabels,
-  //   datasets: [
-  //     {
-  //       label: "Total Supply",
-  //       data: supplyTotal,
-  //       backgroundColor: "#FCFCFC",
-  //       stack: "stack0",
-  //     },
-  //     {
-  //       label: "Circulating",
-  //       data: supplyCirculating,
-  //       backgroundColor: "#3DDC97",
-  //       stack: "stack1",
-  //     },
-  //     {
-  //       label: "Non-Circulating",
-  //       data: supplyNoncirculating,
-  //       backgroundColor: "#FF7F50",
-  //       stack: "stack1",
-  //     },
-  //   ],
-  // };
-
-
   const labels = inflowData[0];
   const inData = inflowData[1];
   const outData = inflowData[2];
@@ -580,6 +571,7 @@ function Stake() {
         <Tab label="Stake Deposits/Withdrawals" />
         <Tab label="Stake Transfer Log" />
         <Tab label="Active Stake" />
+        <Tab label="Supply" />
       </Tabs>
 
       {tab === 0 && (
@@ -684,6 +676,138 @@ function Stake() {
                 This chart display only the active stake, shown as the locked stake, unlocked stake, and the total (locked + unlocked).
                 The locked stake is identified as any stake account with a lockup unixTimestamp > current date. Note that the total balance and the delegated stake
                 can be greater than the active stake, since a stake account can contain coins that are undelegated, or delegated but inactive.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          </Box>
+        </Paper>
+      )}
+      {tab === 3 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <div style={{ height: '100%' }}>
+          <Typography variant="h5">
+            Solana Supply Chart
+         </Typography>
+          <Divider sx={{ marginY: 2 }} />
+          {/* <Typography>{stakeScatter.map(feature => console.log(feature))}</Typography> */}
+          <Scatter options={supplyOptions} data={supplyData} />
+          {/* <Bar options={supplyChartOptions} data={supplyChartData} /> */}
+          <Divider sx={{ marginY: 2 }} />
+          </div>
+          <Box sx={{ paddingY: 3 }}>
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>Solana Supply Fast Facts</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                <TableContainer component={Paper}>
+                  {/* <Table className={classes.table} aria-label="supply snapshot table">*/}
+                  <Table aria-label="supply snapshot table">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Item</TableCell>
+                        <TableCell align="right">Value</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      <TableRow key="date">
+                        <TableCell component="th" scope="row">Date</TableCell>
+                        <TableCell align="right">{supplySnapshot.dt}</TableCell>
+                      </TableRow>
+                      <TableRow key="supplyTotal">
+                        <TableCell component="th" scope="row">Total Supply</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.total_supply)}</TableCell>
+                      </TableRow>
+                      <TableRow key="circulatingSupply">
+                        <TableCell component="th" scope="row">Circulating Supply</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.circulating_supply)}</TableCell>
+                      </TableRow>
+                      <TableRow key="nonCirculatingSupply">
+                        <TableCell component="th" scope="row">Non-Circulating Supply</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.noncirculating_supply)}</TableCell>
+                      </TableRow>
+                      <TableRow key="inflation">
+                        <TableCell component="th" scope="row">Inflation (%)</TableCell>
+                        <TableCell align="right">{supplySnapshot.inflation}</TableCell>
+                      </TableRow>
+                      <TableRow key="balanceTotal">
+                        <TableCell component="th" scope="row">Total Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.balance_total)}</TableCell>
+                      </TableRow>
+                      <TableRow key="delegatedTotal">
+                        <TableCell component="th" scope="row">Total Delegated Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.delegated_total)}</TableCell>
+                      </TableRow>
+                      <TableRow key="activeTotal">
+                        <TableCell component="th" scope="row">Total Active Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.active_total)}</TableCell>
+                      </TableRow>
+                      <TableRow key="activatingTotal">
+                        <TableCell component="th" scope="row">Total Activating Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.activating_total)}</TableCell>
+                      </TableRow>
+                      <TableRow key="deactivatingTotal">
+                        <TableCell component="th" scope="row">Total Deactivating Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.deactivating_total)}</TableCell>
+                      </TableRow>
+                      <TableRow key="balanceLocked">
+                        <TableCell component="th" scope="row">Locked Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.balance_locked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="delegatedLocked">
+                        <TableCell component="th" scope="row">Locked Delegated Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.delegated_locked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="activeLocked">
+                        <TableCell component="th" scope="row">Locked Active Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.active_locked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="activatingLocked">
+                        <TableCell component="th" scope="row">Locked Activating Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.activating_locked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="deactivatingLocked">
+                        <TableCell component="th" scope="row">Locked Deactivating Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.deactivating_locked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="balanceUnlocked">
+                        <TableCell component="th" scope="row">Unlocked Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.balance_unlocked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="delegatedUnlocked">
+                        <TableCell component="th" scope="row">Unlocked Delegated Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.delegated_unlocked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="activeUnlocked">
+                        <TableCell component="th" scope="row">Unlocked Active Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.active_unlocked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="activatingUnlocked">
+                        <TableCell component="th" scope="row">Unlocked Activating Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.activating_unlocked)}</TableCell>
+                      </TableRow>
+                      <TableRow key="deactivatingUnlocked">
+                        <TableCell component="th" scope="row">Unlocked Deactivating Balance</TableCell>
+                        <TableCell align="right">{formatNumber(supplySnapshot.deactivating_unlocked)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Typography>
             </AccordionDetails>
           </Accordion>
