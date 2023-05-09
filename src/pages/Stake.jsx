@@ -118,6 +118,10 @@ export const options = {
     y2: {
       type: "linear",
       position: "right",
+    },
+    y3: {
+      type: "linear",
+      position: "right",
     }
   },
 };
@@ -168,10 +172,14 @@ export const supplyOptions = {
     },
     y: {
       type: "linear",
-      min: 390000000,
-      max: 550000000,
+      // min: 390000000,
+      // max: 550000000,
     },
     y2: {
+      type: "linear",
+      position: "right",
+    },
+    y3: {
       type: "linear",
       position: "right",
     }
@@ -279,6 +287,8 @@ function Stake() {
         // });
     });
   }
+
+  const axesIDs = ['y', 'y2', 'y3']
   let colorIndex = 0;
   const data = {
     datasets: stakeScatter.map((feature) => {
@@ -288,7 +298,8 @@ function Stake() {
       myObject.data = feature[1];
       myObject.borderColor = `${color}`;
       myObject.pointRadius = 1;
-      myObject.yAxisID = ((colorIndex == 1) ? 'y2' : 'y');
+      myObject.yAxisID = axesIDs[colorIndex];
+      // myObject.yAxisID = ((colorIndex == 1) ? 'y2' : 'y');
       myObject.pointHoverRadius = 5;
       myObject.fill = false;
       myObject.tension = 0;
@@ -354,7 +365,8 @@ function Stake() {
       myObject.data = feature[1];
       myObject.borderColor = `${color}`;
       myObject.pointRadius = 1;
-      myObject.yAxisID = ((colorIndex == 1) ? 'y2' : 'y');
+      // myObject.yAxisID = ((colorIndex == 1) ? 'y2' : 'y');
+      myObject.yAxisID = axesIDs[colorIndex];
       myObject.pointHoverRadius = 5;
       myObject.fill = false;
       myObject.tension = 0;
