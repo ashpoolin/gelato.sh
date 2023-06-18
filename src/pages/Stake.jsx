@@ -579,9 +579,14 @@ function Stake() {
 
   return (
     <Stack alignItems={"center"}>
-      <Tabs value={tab} onChange={(_, val) => setTab(val)}>
-        <Tab label="Stake Deposits/Withdrawals" />
-        <Tab label="Stake Transfer Log" />
+      <Tabs 
+        value={tab} 
+        variant="scrollable"
+        scrollButtons="auto"
+        onChange={(_, val) => setTab(val)}
+      >
+        <Tab label="Deposits/Withdrawals" />
+        <Tab label="Transfer Log" />
         <Tab label="Active Stake" />
         <Tab label="Supply" />
       </Tabs>

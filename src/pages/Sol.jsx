@@ -733,12 +733,17 @@ function Sol() {
 
   return (
     <Stack alignItems={"center"}>
-      <Tabs value={tab} onChange={(_, val) => setTab(val)}>
-        <Tab label="On-Exchange Balances" />
-        <Tab label="Whale Transfers" />
-        <Tab label="Total Inflows/Outflows" />
+      <Tabs 
+        value={tab} 
+        variant="scrollable"
+        scrollButtons="auto"
+        onChange={(_, val) => setTab(val)}
+      >
+        <Tab label="Exchanges" />
+        <Tab label="Transfer Log" />
+        <Tab label="In/Outflows" />
         <Tab label="Total CEX Balance" />
-        <Tab label="On-Exchange Balance Summary" />
+        <Tab label="Summary" />
         {/* <Tab label="Percent Share" /> */}
       </Tabs>
 
