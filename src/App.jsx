@@ -8,6 +8,8 @@ import Wallets from "./pages/Wallets";
 import Research from "./pages/Research";
 import About from "./pages/About";
 import { Container } from "@mui/material";
+import Whalescale from "./pages/content/Whalescale";
+import TokenFingerprinting from "./pages/content/TokenFingerprinting";
 
 // import {Routes, Route, Link} from 'react-router-dom';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
@@ -50,6 +52,8 @@ function App() {
                 <Route path="/wallets" element={<Wallets />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/whalescale" element={<Whalescale />} /> 
+                <Route path="/fingerprinting" element={<TokenFingerprinting />} /> 
               </Routes>
               <Footer />
             </Router>

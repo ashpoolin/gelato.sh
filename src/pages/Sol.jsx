@@ -77,7 +77,7 @@ export const options = {
       time: {
         unit: 'day',
         displayFormats: {
-          millisecond: 'yyyy-mm-dd hh:mm:ss',
+          millisecond: 'yyyy-mm-dd hh:mm:ss.SSS',
           second: 'yyyy-MM-dd hh:mm:ss', // cAse SenSitIVe
           minute: 'yyyy-mm-dd hh:mm',
           hour: 'yyyy-mm-dd hh:00',
@@ -204,11 +204,31 @@ export const inflowChartOptions = {
   },
   scales: {
     x: {
-      ticks: {
-        callback: function (value, index, values) {
-          return new Date(value).toISOString().split("T")[0];
+      type: 'time',
+      time: {
+        unit: 'day',
+        displayFormats: {
+          millisecond: 'yyyy-mm-dd hh:mm:ss.SSS',
+          second: 'yyyy-MM-dd hh:mm:ss', // cAse SenSitIVe
+          minute: 'yyyy-mm-dd hh:mm',
+          hour: 'yyyy-mm-dd hh:00',
+          day: 'yyyy-mm-dd',
+          week: 'yyyy-mm-dd',
+          month: 'yyyy-mm',
+          quarter: 'yyyy-QQ',
+          year: 'yyyy'
         },
+        tooltipFormat: 'yyyy-MM-dd hh:mm:ss' // cAse SenSitIVe
       },
+      scaleLabel: {
+        display: true,
+        labelString: 'Date'
+      },
+      ticks: {
+        callback: function(value, index, values) {
+          return new Date(value).toISOString().split("T")[0];
+        }
+      }
     },
     y: {
       // type: "logarithmic",

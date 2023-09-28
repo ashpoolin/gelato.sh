@@ -23,10 +23,13 @@ function Home() {
         Situational Awareness for the Solana Ecosystem
       </Typography>
       <ul>
-        <li>Real-Time Exchange Wallet Tracker (SOL + SPLs)</li>
-        <li>Event Log for significant inflows/outflows</li>
-        <li>**NEW**: DeFi Wallet Profiler</li>
-        <li>Custom Alerts (coming soon)</li>
+        <li>Real-Time Exchange Wallet Tracker (SOL token)</li>
+        <li>Event Log for significant exchange inflows/outflows and whale transfers</li>
+        <li>Solana Stake Program Event Log</li>
+        <li>Charts for locked and non-circulating SOL</li>
+        <li>DeFi Wallet Profiler</li>
+        <li>Research articles</li>
+        <li>Live SOL token unlock schedule</li>
       </ul>
     </Stack>
   );
