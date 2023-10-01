@@ -970,6 +970,10 @@ const unlocksGridColumns = [
                       </TableRow>
                     </TableHead>
                     <TableBody>
+                    <TableRow key="general">
+                        <TableCell component="th" scope="row"><b>General Info</b></TableCell>
+                        <TableCell align="right"> </TableCell>
+                      </TableRow>
                       <TableRow key="date">
                         <TableCell component="th" scope="row">Date</TableCell>
                         <TableCell align="right">{supplySnapshot.dt}</TableCell>
@@ -990,14 +994,18 @@ const unlocksGridColumns = [
                         <TableCell component="th" scope="row">Inflation (%)</TableCell>
                         <TableCell align="right">{supplySnapshot.inflation}</TableCell>
                       </TableRow>
+                      <TableRow key="stake">
+                        <TableCell component="th" scope="row"><b>Stake Info</b></TableCell>
+                        <TableCell align="right"> </TableCell>
+                      </TableRow>
                       <TableRow key="balanceTotal">
                         <TableCell component="th" scope="row">Total Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.balance_total)}</TableCell>
                       </TableRow>
-                      <TableRow key="delegatedTotal">
+                      {/* <TableRow key="delegatedTotal">
                         <TableCell component="th" scope="row">Total Delegated Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.delegated_total)}</TableCell>
-                      </TableRow>
+                      </TableRow> */}
                       <TableRow key="activeTotal">
                         <TableCell component="th" scope="row">Total Active Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.active_total)}</TableCell>
@@ -1014,10 +1022,10 @@ const unlocksGridColumns = [
                         <TableCell component="th" scope="row">Locked Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.balance_locked)}</TableCell>
                       </TableRow>
-                      <TableRow key="delegatedLocked">
+                      {/* <TableRow key="delegatedLocked">
                         <TableCell component="th" scope="row">Locked Delegated Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.delegated_locked)}</TableCell>
-                      </TableRow>
+                      </TableRow> */}
                       <TableRow key="activeLocked">
                         <TableCell component="th" scope="row">Locked Active Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.active_locked)}</TableCell>
@@ -1034,10 +1042,10 @@ const unlocksGridColumns = [
                         <TableCell component="th" scope="row">Unlocked Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.balance_unlocked)}</TableCell>
                       </TableRow>
-                      <TableRow key="delegatedUnlocked">
+                      {/* <TableRow key="delegatedUnlocked">
                         <TableCell component="th" scope="row">Unlocked Delegated Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.delegated_unlocked)}</TableCell>
-                      </TableRow>
+                      </TableRow> */}
                       <TableRow key="activeUnlocked">
                         <TableCell component="th" scope="row">Unlocked Active Balance</TableCell>
                         <TableCell align="right">{formatNumber(supplySnapshot.active_unlocked)}</TableCell>
