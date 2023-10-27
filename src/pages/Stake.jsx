@@ -232,6 +232,7 @@ const formatNumber = (number) => {
 function Stake() {
   const [tab, setTab] = useState(0);
   const [webhookGrid, setWebhookGrid] = useState([]);
+  const [ruggerGrid, setRuggerGrid] = useState([]);
   // const [supplyData, setSupplyData] = useState([]);
   const [stakeScatter, setStakeScatter] = useState([]);
   const [supplyScatter, setSupplyScatter] = useState([]);
@@ -542,6 +543,101 @@ function Stake() {
     },
   ];
 
+  useEffect(() => {
+    getStakeRuggers();
+  }, []);
+  function getStakeRuggers() {
+    fetch(`${URL}/ruggers`)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        const dataObj = JSON.parse(data);
+        // t1.program, t1.type, to_timestamp(t1.blocktime) as dt, t1.signature, t1.authority2, t1.source, t1.destination, t1.uiamount 
+        const identitypubkey = [];
+        const voteaccountpubkey = [];
+        const commission = [];
+        const lastvote = [];
+        const delinquent = [];
+        const skiprate = [];
+        const activestake_validator = [];
+        const activestake_sf = [];
+        const sf_pct = [];
+        dataObj.map((line) => identitypubkey.push(line.identitypubkey));
+        dataObj.map((line) => voteaccountpubkey.push(line.voteaccountpubkey));
+        dataObj.map((line) => commission.push(line.commission));
+        dataObj.map((line) => lastvote.push(line.lastvote));
+        dataObj.map((line) => delinquent.push(line.delinquent));
+        dataObj.map((line) => skiprate.push(line.skiprate));
+        dataObj.map((line) => activestake_validator.push(line.activestake_validator));
+        dataObj.map((line) => activestake_sf.push(line.activestake_sf));
+        dataObj.map((line) => sf_pct.push(line.sf_pct));
+
+        const grid = identitypubkey.map((identity, index) => {
+          let myObject = {};
+          myObject.id = index;
+          myObject.identitypubkey = identitypubkey[index];
+          myObject.voteaccountpubkey = voteaccountpubkey[index];
+          myObject.commission = commission[index];
+          myObject.lastvote = lastvote[index];
+          myObject.delinquent = delinquent[index];
+          myObject.skiprate = skiprate[index];
+          myObject.activestake_validator = activestake_validator[index];
+          myObject.activestake_sf = activestake_sf[index];
+          myObject.sf_pct = sf_pct[index];
+          return myObject;
+        });
+        setRuggerGrid(grid);
+      });
+  }
+
+  const ruggerGridColumns = [
+    {
+      field: "identitypubkey",
+      headerName: "Identity",
+      GridColDef: "flex",
+      flex: 1,
+      renderCell: (params) => (
+        <Link
+          color="secondary"
+          href={
+            "https://www.validators.app/validators/" + 
+            params.row.identitypubkey +
+            "??locale=en&network=mainnet"
+          }
+        >
+          {params.row.identitypubkey.slice(0, 4)}...
+          {params.row.identitypubkey.slice(params.row.identitypubkey.length - 4)}
+        </Link>
+      ),
+    },
+    {
+      field: "voteaccountpubkey",
+      headerName: "Vote Account",
+      GridColDef: "flex",
+      flex: 1,
+      renderCell: (params) => (
+        <Link
+          color="secondary"
+          href={
+            "https://www.validators.app/validators/" +
+            params.row.voteaccountpubkey +
+            "?locale=en&network=mainnet"
+          }
+        >
+          {params.row.voteaccountpubkey.slice(0, 4)}...
+          {params.row.voteaccountpubkey.slice(params.row.voteaccountpubkey.length - 4)}
+        </Link>
+      ),
+    },
+    { field: "commission", headerName: "Commission %", GridColDef: "flex", flex: 1 },
+    { field: "lastvote", headerName: "Last Vote Slot", GridColDef: "flex", flex: 1 },
+    { field: "delinquent", headerName: "Delinquent", GridColDef: "flex", flex: 1 },
+    { field: "skiprate", headerName: "Skip Rate", GridColDef: "flex", flex: 1 },
+    { field: "activestake_validator", headerName: "Validator Stake", GridColDef: "flex", flex: 1 },
+    { field: "activestake_sf", headerName: "SF Stake", GridColDef: "flex", flex: 1 },
+    { field: "sf_pct", headerName: "SF % Share", GridColDef: "flex", flex: 1 },
+  ];
 
   // NET INFLOW CHART DATA PULL AND CONFIG
   const [inflowData, setInflowData] = useState([]);
@@ -817,6 +913,7 @@ const unlocksGridColumns = [
         <Tab label="Active Stake" />
         <Tab label="Supply" />
         <Tab label="Unlocks" />
+        <Tab label="Shame" />
       </Tabs>
 
       {tab === 0 && (
@@ -1123,6 +1220,56 @@ const unlocksGridColumns = [
             </AccordionDetails>
           </Accordion>
           </Box>
+        </Paper>
+      )}
+      {tab === 5 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <div style={{ height: '100%' }}>
+          <Typography variant="h5">
+            Validator Wall of Shame
+         </Typography>
+          <Divider sx={{ marginY: 2 }} />
+
+          <DataGrid
+            sx={{ minHeight: '600px' }}
+            rows={ruggerGrid}
+            columns={ruggerGridColumns}
+            components={{ Toolbar: GridToolbar }}
+          />
+          <Divider sx={{ marginY: 2 }} />
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>Commission Rugging</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                <h4></h4>
+                This section is dedicated to showing validators that are currently abusing stakers by changing their commission structure to take extraordinary staking reward fees. Commission rugging may entail sneaky tricks like changing the commission rate to 100% for a few epochs, or changing the commission rate to 100% at the end of an epoch, and then switching it back to a realistic rate to avoid detection. <br /><br /> 
+                
+                There are over 200 "private" (100% commission) validators on Solana, so this list shows only the most plausible commission ruggers. There are likely others, which we will work to find reliable ways to identify them. This list is comprised of ONLY validators that participate in the Solana Foundation stake program and therefore should not be charging greater than 10%. Additionally, we measure the proportion of the validator's total stake contributed by the Solana Foundation, where a higher number indicates a greater likelihood of commission rugging (e.g. no "skin in the game"). <br /><br />  
+
+                Commission Rugging is harmful to the Solana community because it erodes trust in the stake delegation process, and steals resources from both users and the Foundation. Money that would otherwise be spent developing better features and technology to ensure a thriving on-chain economy..
+                <br /><br />
+                
+                The list is generated automatically, and may not be 100% accurate. If your validator is incorrectly flagged please notify me and I may whitelist it.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          </div>
         </Paper>
       )}
     </Stack>
