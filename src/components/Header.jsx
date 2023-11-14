@@ -34,6 +34,9 @@ function Header() {
         {/* <Button href="/spl" color="secondary">
           SPL
         </Button> */}
+        <Button href="/chainsplain-me" color="secondary">
+          Chainsplain.me
+        </Button>
         <Button href="/wallets" color="secondary">
           Wallets
         </Button>
