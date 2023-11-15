@@ -10,7 +10,7 @@ import Research from "./pages/Research";
 import About from "./pages/About";
 import { Container } from "@mui/material";
 import Whalescale from "./pages/content/Whalescale";
-import Rugs from "./pages/content/Rugs";
+// import Rugs from "./pages/content/Rugs";
 import TokenFingerprinting from "./pages/content/TokenFingerprinting";
 
 // import {Routes, Route, Link} from 'react-router-dom';
@@ -57,7 +57,7 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/whalescale" element={<Whalescale />} /> 
                 <Route path="/fingerprinting" element={<TokenFingerprinting />} /> 
-                <Route path="/rugs" element={<Rugs />} /> 
+                {/* <Route path="/rugs" element={<Rugs />} />  */}
               </Routes>
               <Footer />
             </Router>
