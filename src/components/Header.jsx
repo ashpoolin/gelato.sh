@@ -8,8 +8,13 @@ import {
   Stack,
 } from "@mui/material";
 import logo from "../assets/gelato-logo.png";
-
+import { LinkOff } from '@material-ui/icons';
+import { WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { FC } from 'react';
 function Header() {
+  const { wallet } = useWallet();
+
   return (
     <Stack
       direction="row"
@@ -22,6 +27,7 @@ function Header() {
         <Typography variant="h6">gelato.sh</Typography>
       </Stack>
       <Stack direction={"row"} alignItems={"center"} spacing={1}>
+
         <Button href="/" color="secondary">
           HOME
         </Button>
@@ -35,10 +41,10 @@ function Header() {
           SPL
         </Button> */}
         <Button href="/chainsplain-me" color="secondary">
-          Chainsplain.me
+          AI
         </Button>
         <Button href="/wallets" color="secondary">
-          Wallets
+          WALLETS
         </Button>
         <Button href="/research" color="secondary">
           Research
@@ -46,6 +52,8 @@ function Header() {
         <Button href="/about" color="secondary">
           ABOUT
         </Button>
+        <WalletMultiButton style={{backgroundColor: '#15171b', color: '#3DDC97',  border: '0px solid #2e3472', fontWeight: 'normal', fontSize: 'smaller', textTransform: 'uppercase'}}/>
+        {wallet && <WalletDisconnectButton startIcon={<LinkOff />} style={{ marginLeft: 8, backgroundColor: '#15171b', color: '#3DDC97',  border: '0px solid #2e3472', fontWeight: 'normal', textTransform: 'uppercase', fontSize: 'smaller'}} />}
       </Stack>
     </Stack>
   );

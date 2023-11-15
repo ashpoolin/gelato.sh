@@ -1,7 +1,10 @@
-import React, { useState, useCallback } from "react";
+// import React, { useState, useCallback } from "react";
+import React, { FC, useState, useCallback } from 'react';
+import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 
-// add filtering to tables
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+// import { Wallet } from "../components/WalletAdapter";
 import { 
   Card,
   CardContent,
@@ -16,7 +19,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   TextField,
-  Button
+  Button,
+  styled
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box } from "@mui/system";
@@ -25,8 +29,11 @@ import DOMPurify from 'dompurify';
 import debounce from "lodash.debounce";
 import axios from 'axios';
 
+
+
 const URL = process.env.REACT_APP_CHAINSPLAIN_URL;
-console.log(`URL = ${URL}`);
+const SOL_TROLL = process.env.REACT_APP_SOL_TROLL
+
 function Chainsplain() {
   const [tab, setTab] = useState(0);
   // const [walletBalanceGrid, setWalletBalanceGrid] = useState([]);
@@ -70,9 +77,40 @@ function Chainsplain() {
   //   });
   // };
 
+  // const SendSOLToRandomAddress = () => {
+    const { connection } = useConnection();
+    // const { sendTransaction } = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
+  
+    const gottaPayTheSOLTroll = useCallback(async () => {
+        if (!publicKey) throw new WalletNotConnectedError();
+        const toPublicKey = new PublicKey(SOL_TROLL)
+        const lamports = 1000000;
+  
+        const transaction = new Transaction().add(
+            SystemProgram.transfer({
+                fromPubkey: publicKey,
+                toPubkey: toPublicKey,
+                lamports,
+            })
+        );
+  
+        const {
+            context: { slot: minContextSlot },
+            value: { blockhash, lastValidBlockHeight }
+        } = await connection.getLatestBlockhashAndContext();
+  
+        const signature = await sendTransaction(transaction, connection, { minContextSlot });
+  
+        await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+    // }, [sendTransaction, connection]);
+    }, [publicKey, sendTransaction, connection]);
+  // };
   const chainsplainIt = async () => {
     const data = { message: searchQuery };
     console.log(data);
+
+    await gottaPayTheSOLTroll();
     return axios.post(URL, data, {
       headers: {
         'Content-Type': 'application/json',
@@ -99,6 +137,8 @@ function Chainsplain() {
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(JSON.stringify(searchResult, null, 2));
   }
+
+  
   return (
     <Stack alignItems={"center"}>
       <Tabs value={tab} onChange={(_, val) => setTab(val)}>
@@ -120,7 +160,11 @@ function Chainsplain() {
                 Solana Plaintext Data Query 
           </Typography><br />
           <TextField id="standard-basic" style={{width: '800px'}} label="ask the AI a question..." variant="standard" onChange={(e) => debouncedGetAndSet( DOMPurify.sanitize(e.target.value.trim()) )} /><br />
-          <Button color="secondary" onClick={() => timeAsyncFunction(chainsplainIt).then(time => setElapsedTime(`Elapsed time: ${time} sec`))}>QUERY</Button>
+          <Button color="secondary" onClick={() => timeAsyncFunction(chainsplainIt).then(time => setElapsedTime(`Elapsed time: ${time} sec`))}>QUERY</Button><br/>
+          {/* <Box>        <button onClick={SendSOLToRandomAddress.onClick} disabled={!publicKey}> */}
+          {/* <Box>        <button onClick={onClick}>
+            Send SOL to a random address!
+        </button></Box><br/> */}
           <Typography>{searchQuery}</Typography>
           <br /><br />
           {/* <Divider sx={{ marginY: 2 }} /> */}
