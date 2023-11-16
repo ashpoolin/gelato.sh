@@ -25,9 +25,9 @@ function Home() {
         width={250}
         height={250}
       /> */}
-      <Typography variant="h2" textAlign={"center"}>
-       Real-time tracking and analysis
-       <br /> for the on-chain native. 
+      <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '62px', textAlign:'center' }}>
+      <span style={{opacity: '0.6'}}>Real-time</span> tracking <span style={{opacity: '0.6'}}>&amp; </span>analysis
+       <br /> <span style={{opacity: '0.6'}}>for the on-chain native.</span> 
       </Typography>
       <ul>
         <li>Real-Time Exchange Wallet Tracker (SOL token)</li>
