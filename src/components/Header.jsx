@@ -19,7 +19,7 @@ function Header() {
     >
       <Stack direction={"row"} alignItems={"center"} spacing={2}>
         <img src={logo} width={60} height={60} alt="gelato.sh" />
-        <Typography variant="h6">gelato.sh</Typography>
+        <Typography variant="h4">Gelato</Typography>
       </Stack>
       <Stack direction={"row"} alignItems={"center"} spacing={1}>
         <Button href="/" color="secondary">

@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material";
-import logo from "../assets/gelato-logo.png";
+//import logo from "../assets/gelato-logo.png";
 
 function Home() {
   return (
@@ -9,7 +9,7 @@ function Home() {
       spacing={5}
       sx={{ minHeight: "85vh" }}
     >
-      <Typography variant="h1" textAlign={"center"}>
+      {/* <Typography variant="h1" textAlign={"center"}>
         gelato.sh
       </Typography>
       <img
@@ -18,9 +18,10 @@ function Home() {
         alt="logo"
         width={250}
         height={250}
-      />
-      <Typography variant="h4" textAlign={"center"}>
-        Situational Awareness for the Solana Ecosystem
+      /> */}
+      <Typography variant="h2" textAlign={"center"}>
+       Real-time tracking and analysis
+       <br /> for the on-chain native. 
       </Typography>
       <ul>
         <li>Real-Time Exchange Wallet Tracker (SOL token)</li>
