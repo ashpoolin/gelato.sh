@@ -17,9 +17,9 @@ function Header() {
       justifyContent={"space-between"}
       sx={{ width: "100%", marginY: 2 }}
     >
-      <Stack direction={"row"} alignItems={"center"} spacing={2}>
+      <Stack direction={"row"} alignItems={"center"} justifyContent={"center"} spacing={2}>
         <img src={logo} width={60} height={60} alt="gelato.sh" />
-        <Typography variant="h4">Gelato</Typography>
+        <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '42px' }}>Gelato</Typography>
       </Stack>
       <Stack direction={"row"} alignItems={"center"} spacing={1}>
         <Button href="/" color="secondary">
