@@ -9,7 +9,7 @@ function Home() {
         transition={{ type: "spring", stiffness: 500, damping: 20 }}
         className="container flex flex-col"
       >
-      <h1 className="text-white font-bold text-[62px] text-center">
+      <h1 className="text-white font-bold text-[62px] text-center h-screen">
         <span className="opacity-60">Real-time</span> tracking <span className="opacity-60">&amp;</span> analysis
         <br />  <span className="opacity-60">for the Solana blockchain.</span> 
       </h1>
