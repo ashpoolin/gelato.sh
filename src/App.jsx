@@ -41,7 +41,7 @@ function App() {
         <CssBaseline />
 
         <div className="App">
-          <Container maxWidth="lg">
+          <Container>
             <Router>
               <Header />
               <Routes>
