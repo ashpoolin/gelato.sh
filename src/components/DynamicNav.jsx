@@ -25,7 +25,7 @@ export default function DynamicNav() {
 
   return (
     <motion.nav
-      className={`fixed inset-0 top-4 w-[95%] sm:w-[95%] mx-auto bg-white/10 font-medium text-slate-50 flex max-sm:justify-between gap-4 max-w-7xl items-center rounded-full font-mono h-14 p-5 overflow-hidden z-5`}
+      className={`fixed inset-0 top-4 w-[95%] sm:w-[95%] mx-auto backdrop-blur-md bg-white/10 font-medium text-slate-50 flex max-sm:justify-between gap-4 max-w-7xl items-center rounded-full font-mono h-14 p-5 overflow-hidden z-50`}
       variants={{
         long: { maxWidth: 777 },
         short: { maxWidth: 200 },
