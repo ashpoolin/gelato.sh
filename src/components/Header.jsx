@@ -1,32 +1,22 @@
 import { Link } from "react-router-dom";
-import {
-  Typography,
-  Stack,
-} from "@mui/material";
 import logo from "../assets/gelato-logo.png";
 
 function Header() {
-  
   return (
-    <Stack
-      direction="row"
-      alignItems={"center"}
-      justifyContent={"space-between"}
-      sx={{ width: "100%", marginY: 2 }}
-    >
-      <Stack direction={"row"} alignItems={"center"} justifyContent={"center"} spacing={2}>
-        <img src={logo} width={60} height={60} alt="gelato.sh" />
-        <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '42px' }}>Gelato</Typography>
-      </Stack>
-      <Stack direction={"row"} alignItems={"center"} spacing={1}>
-        <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>HOME</Link>
-        <Link to="/sol" style={{ color: 'white', textDecoration: 'none' }}>SOL</Link>
-        <Link to="/stake" style={{ color: 'white', textDecoration: 'none' }}>STAKE</Link>
-        <Link to="/wallets" style={{ color: 'white', textDecoration: 'none' }}>Wallets</Link>
-        <Link to="/research" style={{ color: 'white', textDecoration: 'none' }}>Research</Link>
-        <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>ABOUT</Link>
-      </Stack>
-    </Stack>
+    <div className="flex justify-between items-center w-full my-2 p-8">
+      <div className="flex items-center justify-center space-x-2">
+        <img src={logo} className="w-10 h-10" alt="gelato.sh" />
+        <h1 className="text-white font-bold text-4xl">Gelato</h1>
+      </div>
+      <div className="flex items-center space-x-4">
+        <Link to="/" className="text-white/50 hover:text-white no-underline transition ease-in-out duration-150">Home</Link>
+        <Link to="/sol" className="text-white/50 hover:text-white no-underline transition ease-in-out duration-150">SOL</Link>
+        <Link to="/stake" className="text-white/50 hover:text-white no-underline transition ease-in-out duration-150">Stake</Link>
+        <Link to="/wallets" className="text-white/50 hover:text-white no-underline transition ease-in-out duration-150">Wallets</Link>
+        <Link to="/research" className="text-white/50 hover:text-white no-underline transition ease-in-out duration-150">Research</Link>
+        <Link to="/about" className="text-white/50 hover:text-white no-underline transition ease-in-out duration-150">About</Link>
+      </div>
+    </div>
   );
 }
 

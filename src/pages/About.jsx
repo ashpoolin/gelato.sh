@@ -1,6 +1,6 @@
 import { Stack, Typography } from "@mui/material";
 import logo from "../assets/gelato-logo.png";
-import Footer from "../components/Footer";
+//import Footer from "../components/Footer";
 import { motion } from 'framer-motion';
 
 function About() {

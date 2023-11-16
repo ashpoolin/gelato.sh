@@ -3,7 +3,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Sol from "./pages/Sol";
 import Stake from "./pages/Stake";
-import Spl from "./pages/Spl";
+//import Spl from "./pages/Spl";
 import Wallets from "./pages/Wallets";
 import Research from "./pages/Research";
 import About from "./pages/About";
