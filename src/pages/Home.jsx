@@ -1,8 +1,14 @@
 import { Stack, Typography } from "@mui/material";
-//import logo from "../assets/gelato-logo.png";
+import { motion } from 'framer-motion';
 
 function Home() {
   return (
+    <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -50, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 20 }}
+      >
     <Stack
       alignItems={"center"}
       justifyContent={"center"}
@@ -33,6 +39,7 @@ function Home() {
         <li>Live SOL token unlock schedule</li>
       </ul>
     </Stack>
+    </motion.div>
   );
 }
 

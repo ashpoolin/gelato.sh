@@ -1,15 +1,12 @@
 import { Link } from "react-router-dom";
 import {
-  Button,
-  AppBar,
-  Container,
-  Toolbar,
   Typography,
   Stack,
 } from "@mui/material";
 import logo from "../assets/gelato-logo.png";
 
 function Header() {
+  
   return (
     <Stack
       direction="row"
@@ -22,27 +19,12 @@ function Header() {
         <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '42px' }}>Gelato</Typography>
       </Stack>
       <Stack direction={"row"} alignItems={"center"} spacing={1}>
-        <Button href="/" color="secondary">
-          HOME
-        </Button>
-        <Button href="/sol" color="secondary">
-          SOL
-        </Button>        
-        <Button href="/stake" color="secondary">
-          STAKE
-        </Button>
-        {/* <Button href="/spl" color="secondary">
-          SPL
-        </Button> */}
-        <Button href="/wallets" color="secondary">
-          Wallets
-        </Button>
-        <Button href="/research" color="secondary">
-          Research
-        </Button>
-        <Button href="/about" color="secondary">
-          ABOUT
-        </Button>
+        <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>HOME</Link>
+        <Link to="/sol" style={{ color: 'white', textDecoration: 'none' }}>SOL</Link>
+        <Link to="/stake" style={{ color: 'white', textDecoration: 'none' }}>STAKE</Link>
+        <Link to="/wallets" style={{ color: 'white', textDecoration: 'none' }}>Wallets</Link>
+        <Link to="/research" style={{ color: 'white', textDecoration: 'none' }}>Research</Link>
+        <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>ABOUT</Link>
       </Stack>
     </Stack>
   );

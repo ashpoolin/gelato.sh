@@ -1,9 +1,16 @@
 import { Stack, Typography } from "@mui/material";
 import logo from "../assets/gelato-logo.png";
 import Footer from "../components/Footer";
+import { motion } from 'framer-motion';
 
 function About() {
   return (
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -50, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 500, damping: 20 }}
+    >
     <Stack
       alignItems={"center"}
       justifyContent={"center"}
@@ -40,6 +47,7 @@ function About() {
         Solana's neon forest.
       </Typography>
     </Stack>
+    </motion.div>
   );
 }
 
