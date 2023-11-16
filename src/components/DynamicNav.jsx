@@ -25,10 +25,10 @@ export default function DynamicNav() {
 
   return (
     <motion.nav
-      className={`fixed inset-0 top-4 w-[95%] sm:w-[90%] mx-auto bg-white/10 font-medium text-slate-50 flex max-sm:justify-between gap-4 px-3 max-w-7xl items-center rounded-full font-mono h-14 p-5 overflow-hidden `}
+      className={`fixed inset-0 top-4 w-[95%] sm:w-[95%] mx-auto bg-white/10 font-medium text-slate-50 flex max-sm:justify-between gap-4 px-3 max-w-7xl items-center rounded-full font-mono h-14 p-5 overflow-hidden z-5`}
       variants={{
-        long: { maxWidth: 950 },
-        short: { maxWidth: 280 },
+        long: { maxWidth: 777 },
+        short: { maxWidth: 200 },
         hideNav: {
           height: 56,
           borderRadius: 50,
@@ -51,9 +51,11 @@ export default function DynamicNav() {
         damping: 14,
       }}
     >
-      <div className="min-w-[40px] min-h-[40px] rounded-full gap-2 bg-slate-50 flex items-center justify-center">
-        <img src={'/gelato-logo.png'} alt="logo" width={44} height={44} />
-      </div>
+        <div className="rounded-full flex items-center justify-center space-x-2">
+            <img src={'/gelato-logo.png'} alt="logo" width={40} height={40} />
+            <p className="text-white font-bold text-xl">Gelato</p>
+        </div>
+      
       <motion.ul
         className={`w-full ${
           showNav
@@ -87,7 +89,7 @@ export default function DynamicNav() {
         <Link to="/about" className="text-white/50 hover:text-white no-underline transition ease-in-out duration-150">About</Link>
       </div>
       </motion.ul>
-
+{/* 
       <motion.div
         className="w-full [--display-from:none][--display-to:inline-block] "
         variants={{
@@ -106,7 +108,7 @@ export default function DynamicNav() {
         <div className="w-full text-center">
             <p className="text-white font-bold text-2xl">Gelato</p>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       <div
         className="rounded-full min-w-[40px] sm:hidden ghost"
