@@ -27,7 +27,7 @@ function Home() {
       /> */}
       <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '62px', textAlign:'center' }}>
       <span style={{opacity: '0.6'}}>Real-time</span> tracking <span style={{opacity: '0.6'}}>&amp; </span>analysis
-       <br /> <span style={{opacity: '0.6'}}>for the on-chain native.</span> 
+      <br />  <span style={{opacity: '0.6'}}>for the Solana blockchain.</span> 
       </Typography>
       <ul>
         <li>Real-Time Exchange Wallet Tracker (SOL token)</li>
