@@ -190,8 +190,9 @@ function Chainsplain() {
                 </CardContent> 
               </Card> 
               <Box><br />
-          <Typography><i>For a very limited time: requests available on DEVNET (free of charge). Cost per query is 0.001 SOL. Switch your wallet RPC cluster to Devnet, fund it with some SOL (`solana airdrop 1`), and make a plaintext query to the Gelato database. </i></Typography>
-
+          <Typography><i>For a very limited time: requests available on DEVNET (free of charge). Cost per query is 0.001 SOL. Switch your wallet RPC cluster to Devnet, fund it with some SOL (`solana airdrop 1`), and make a plaintext query to the Gelato database. </i></Typography><br />
+          <Typography><i><b>(!) DO NOT PAY FEES ON MAINNET-BETA RIGHT NOW. IT WILL TAKE YOUR FEE, BUT WILL NOT COMPLETE THE QUERY AS REQUESTED. ENSURE THE DEVNET CLUSTER IS SELECTED IN YOUR WALLET BEFORE PROCEEDING (!)</b></i></Typography><br />
+          <Typography><i>Note: the first query almost always fails. We're working on it. Just submit the query and tx again, go flip tabs for a minute, then you should have your answer.</i></Typography><br />
 
               </Box>
             </>
