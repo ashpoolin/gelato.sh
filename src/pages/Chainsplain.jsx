@@ -101,16 +101,20 @@ function Chainsplain() {
         } = await connection.getLatestBlockhashAndContext();
   
         const signature = await sendTransaction(transaction, connection, { minContextSlot });
+        // const signature = await sendTransaction(transaction, connection, { minContextSlot });
   
         await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+        return signature;
+
     // }, [sendTransaction, connection]);
     }, [publicKey, sendTransaction, connection]);
   // };
   const chainsplainIt = async () => {
-    const data = { message: searchQuery };
+    const signature = await gottaPayTheSOLTroll();
+
+    const data = {signature: signature, query: searchQuery };
     console.log(data);
 
-    await gottaPayTheSOLTroll();
     return axios.post(URL, data, {
       headers: {
         'Content-Type': 'application/json',
@@ -137,7 +141,12 @@ function Chainsplain() {
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(JSON.stringify(searchResult, null, 2));
   }
+  const handleClear = () => {
+    setSearchQuery('');
+    setSearchResult('');
+    setElapsedTime('');
 
+  };
   
   return (
     <Stack alignItems={"center"}>
@@ -161,28 +170,14 @@ function Chainsplain() {
           </Typography><br />
           <TextField id="standard-basic" style={{width: '800px'}} label="ask the AI a question..." variant="standard" onChange={(e) => debouncedGetAndSet( DOMPurify.sanitize(e.target.value.trim()) )} /><br />
           <Button color="secondary" onClick={() => timeAsyncFunction(chainsplainIt).then(time => setElapsedTime(`Elapsed time: ${time} sec`))}>QUERY</Button><br/>
-          {/* <Box>        <button onClick={SendSOLToRandomAddress.onClick} disabled={!publicKey}> */}
-          {/* <Box>        <button onClick={onClick}>
-            Send SOL to a random address!
-        </button></Box><br/> */}
           <Typography>{searchQuery}</Typography>
           <br /><br />
-          {/* <Divider sx={{ marginY: 2 }} /> */}
-
             <>
-            {/* <TextField 
-              style={{ height: '600px', width: '800px' }}
-              label="Prompt Result:"
-              multiline
-              value={JSON.stringify(searchResult, null, 2)}
-
-              InputProps={{ disableUnderline: true }}
-              inputProps={{ style: { fontSize: 14, padding: 8 } }}
-            /> */}
               <Card variant="outlined"> 
                 <CardContent>
                   <Button color="secondary" onClick={handleSaveToFile}>Save to file</Button>
                   <Button color="secondary" onClick={handleCopyToClipboard}>Copy to clipboard</Button>
+                  <Button color="secondary" onClick={handleClear}>Clear</Button>
                   <Typography>{elapsedTime ? elapsedTime : "0 ms"}</Typography> 
                   <Box 
                     component="div" 
@@ -208,6 +203,32 @@ function Chainsplain() {
               aria-controls="panel1a-content"
               id="panel1a-header"
             >
+            <Typography>(!) WARNING - READ BEFORE USE</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                WARNING: THIS TOOL IS UNAUDITED, OPEN SOURCE CODE. WHILE THE AMOUNTS OF SOL HANDLED BY THE PROGRAM ARE VERY LOW, FOR YOUR OWN SAFETY: DO NOT CONNECT A WALLET WITH LARGE BALANCES, OR VALUABLE ASSETS TO THIS SITE. USE AN ALTERNATE, BURNER WALLET. USE AT YOUR OWN RISK. <br/><br/>
+
+                <b>Here's the deal:</b>
+                <ol>
+                  <li>The code is EXPERIMENTAL: there will be bugs. You will have failed requests, cryptic errors--there's a lot of moving parts behind this system!</li>
+                  <li>The system is SLOW. Between signing, tx confirmation, and the call to the LLM, queries regularly take 20-60 seconds, more complex and more data may take much longer.</li>
+                  <li>Cost is 0.001 SOL per query (about $0.06). This is to compensate for the API and hosting costs required to provide the service. The fee and signing process is also a deterrent to anyone who would try to ring up costs, or DoS the platform.</li>
+                  <li>Failed queries are baked into the price. I'd charge more if it was more reliable. NO REFUNDS.</li>
+                </ol>  
+              </Typography>
+              <br/>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
             <Typography>How to Use Chainsplain.me</Typography>
             </AccordionSummary>
             <AccordionDetails>
@@ -216,17 +237,45 @@ function Chainsplain() {
 
                 <b>Tips on how to use the tool:</b>
                 <ol>
-                  <li>Queries will fail. Sometimes the AI does not produce coherent SQL queries, and will return empty-handed, probably with cryptic errors.</li>
+                <li>Queries will fail. Sometimes the AI does not produce coherent SQL queries, and will return empty-handed, probably with cryptic errors.</li>
                   <li>Talk to it like it's a computer. AIs are very literal. You must be specific about exactly what filters to apply, and what fields to include </li>
                   <li>Use the column names and table names for the tables (legend provided in the accordion below) to inquire. </li>
-                  <li>write pseudoSQP</li>
-                  <li>Output is structured as a JSON object for the user to easily copy paste into another file, and convert to csv.</li>
+                  <li>write pseudoSQL based on the column names and value descriptions. </li>
+                  <li>Output is structured as a JSON object for the user to easily download or copy-paste into another file.</li>
                   <li>You can download the output using the buttons at right. </li>
                 </ol>  
               </Typography>
               <br/>
             </AccordionDetails>
           </Accordion>
+          
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>Query Examples</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                In lieu of better documentation (coming soon) here are some example queries to help you get the idea:<br/><br/>
+                <ol>
+                <li>please give the count of each transaction type and the sum of the uiamount of each for the past 24 hours from stake_program_event_log</li>
+                  <li>what is the name, identity, activestake, data_center_key, latitude, and longitude for Coinbase Cloud?</li>
+                  <li>what is the name, identity, activestake, data_center_key, latitude, and longitude for the 5 largest validators ranked by activestake?</li>
+                  <li>give the total uiamount for the top 5 destination addresses with type withdraw for the past 24 hours from stake_program_event_log.</li>
+                  <li>Give me the address for all label like %Alameda%Staking% from sol_address_defs</li>
+                  <li>Give me the top 5 days with the largest unlocks by total balance by date</li>
+                </ol>  
+              </Typography>
+              <br/>
+            </AccordionDetails>
+          </Accordion>
+
+          
           </div>
         </Paper>
       )}
