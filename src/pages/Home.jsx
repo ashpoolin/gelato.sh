@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import BentoFeatures from '../components/BentoFeatures';
 
 function Home() {
   return (
@@ -7,13 +8,13 @@ function Home() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -50, opacity: 0 }}
         transition={{ type: "spring", stiffness: 500, damping: 20 }}
-        className="container flex flex-col h-screen"
+        className=""
       >
       <h1 className="text-white text-5xl tracking-tight leading-tight text-center font-mono">
         <span className="opacity-60">Real-time</span> tracking <span className="opacity-60">&amp;</span> analysis
         <br />  <span className="opacity-60">for the Solana blockchain.</span> 
       </h1>
-      
+      <BentoFeatures />
       {/* <ul className="list-disc space-y-2">
         <li>Real-Time Exchange Wallet Tracker (SOL token)</li>
         <li>Event Log for significant exchange inflows/outflows and whale transfers</li>
@@ -23,6 +24,7 @@ function Home() {
         <li>Research articles</li>
         <li>Live SOL token unlock schedule</li>
       </ul> */}
+      
     </motion.div>
   );
 }
