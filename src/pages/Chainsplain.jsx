@@ -166,7 +166,7 @@ function Chainsplain() {
         >
           <div style={{ height: '100%' }}>
           <Typography variant="h5">
-                Solana Plaintext Data Query 
+                Chainsplain.me (DEVNET) 
           </Typography><br />
           <TextField id="standard-basic" style={{width: '800px'}} label="ask the AI a question..." variant="standard" onChange={(e) => debouncedGetAndSet( DOMPurify.sanitize(e.target.value.trim()) )} /><br />
           <Button color="secondary" onClick={() => timeAsyncFunction(chainsplainIt).then(time => setElapsedTime(`Elapsed time: ${time} sec`))}>QUERY</Button><br/>
@@ -189,7 +189,8 @@ function Chainsplain() {
 
                 </CardContent> 
               </Card> 
-              <Box>
+              <Box><br />
+          <Typography><i>For a very limited time: requests available on DEVNET (free of charge). Cost per query is 0.001 SOL. Switch your wallet RPC cluster to Devnet, fund it with some SOL (`solana airdrop 1`), and make a plaintext query to the Gelato database. </i></Typography>
 
 
               </Box>
@@ -212,9 +213,12 @@ function Chainsplain() {
                 <b>Here's the deal:</b>
                 <ol>
                   <li>The code is EXPERIMENTAL: there will be bugs. You will have failed requests, cryptic errors--there's a lot of moving parts behind this system!</li>
+                  <li>Data can be incorrect. Large-language models often hallucinate, and can present totally incorrect information with high confidence. Always check and confirm the results for what the AI is saying with a block explorer. GELATO.SH IS NOT RESPONSIBLE FOR ANY ACTIONS YOU MAKE AS A RESULT OF INFORMATION PROVIDED BY THE AI ("CHAINSPLAIN").</li>
                   <li>The system is SLOW. Between signing, tx confirmation, and the call to the LLM, queries regularly take 20-60 seconds, more complex and more data may take much longer.</li>
                   <li>Cost is 0.001 SOL per query (about $0.06). This is to compensate for the API and hosting costs required to provide the service. The fee and signing process is also a deterrent to anyone who would try to ring up costs, or DoS the platform.</li>
                   <li>Failed queries are baked into the price. I'd charge more if it was more reliable. NO REFUNDS.</li>
+                  <li>You agree to not use this tool for illegal or nefarious purposes.</li>
+                  <li>You agree that you are permitted to use this tool. Users from specially designated nations or organizations are not permitted to use the tool. This includes the countries Russia, Cuba, Iran, Democratic Republic of Congo, China, et al.</li>
                 </ol>  
               </Typography>
               <br/>
