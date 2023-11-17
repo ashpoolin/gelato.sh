@@ -11,7 +11,7 @@ function Home() {
         className=""
       >
       <h1 className="text-white text-5xl tracking-tight leading-tight text-center font-mono">
-        <span className="opacity-60">Real-time</span> tracking <span className="opacity-60">&amp;</span> analysis
+        <span className="opacity-60"></span>Real-time tracking <span className="opacity-60">&amp;</span> tailored analysis
         <br />  <span className="opacity-60">for the Solana blockchain.</span> 
       </h1>
       <BentoFeatures />
