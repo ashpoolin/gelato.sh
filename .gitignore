@@ -3,6 +3,7 @@
 # misc
 .env
 Rugs.jsx
+src/components/crypto
 
 # dependencies
 /node_modules
