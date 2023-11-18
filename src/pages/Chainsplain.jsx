@@ -1,10 +1,8 @@
-// import React, { useState, useCallback } from "react";
 import React, { FC, useState, useCallback } from 'react';
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
-
-// import { Wallet } from "../components/WalletAdapter";
+import { Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction} from '@solana/web3.js';
+import { createHash } from '../components/crypto';
 import { 
   Card,
   CardContent,
@@ -36,9 +34,6 @@ const SOL_TROLL = process.env.REACT_APP_SOL_TROLL
 
 function Chainsplain() {
   const [tab, setTab] = useState(0);
-  // const [walletBalanceGrid, setWalletBalanceGrid] = useState([]);
-  // const [walletLabel, setWalletLabel] = useState('');
-  // const [displayAddress, setDisplayAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState("");
   const [elapsedTime, setElapsedTime] = useState("");
@@ -58,59 +53,44 @@ function Chainsplain() {
     });
   }
 
-  // const chainsplainIt = async (query) => {
-  // const chainsplainIt = async () => {
-  //   const data = { message: searchQuery };
-  //   console.log(data);
-  //   axios.post(URL, data, {
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     }
-  //   })
-  //   .then(response => {
-  //     console.log(response.data);
-  //     setSearchResult(response.data)
-  //   })
-  //   .catch(error => {
-  //     console.log(error.response.data);
-  //     setSearchResult(error.response.data)
-  //   });
-  // };
-
-  // const SendSOLToRandomAddress = () => {
     const { connection } = useConnection();
-    // const { sendTransaction } = useWallet();
     const { publicKey, sendTransaction } = useWallet();
   
-    const gottaPayTheSOLTroll = useCallback(async () => {
+    const gottaPayTheSOLTroll = useCallback(async (searchString) => {
         if (!publicKey) throw new WalletNotConnectedError();
         const toPublicKey = new PublicKey(SOL_TROLL)
         const lamports = 1000000;
-  
-        const transaction = new Transaction().add(
+        const hash = createHash('sha256').update(searchString).digest('base64');
+        console.log(hash);
+        let transaction = new Transaction().add(
             SystemProgram.transfer({
                 fromPubkey: publicKey,
                 toPubkey: toPublicKey,
                 lamports,
             })
         );
-  
+        transaction.add(
+          new TransactionInstruction({
+            keys: [{ pubkey: publicKey, isSigner: true, isWritable: true }],
+            data: Buffer.from(hash, "utf-8"),
+            programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
+          })
+        )
+        
         const {
             context: { slot: minContextSlot },
             value: { blockhash, lastValidBlockHeight }
         } = await connection.getLatestBlockhashAndContext();
   
         const signature = await sendTransaction(transaction, connection, { minContextSlot });
-        // const signature = await sendTransaction(transaction, connection, { minContextSlot });
   
         await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
         return signature;
 
-    // }, [sendTransaction, connection]);
     }, [publicKey, sendTransaction, connection]);
-  // };
+
   const chainsplainIt = async () => {
-    const signature = await gottaPayTheSOLTroll();
+    const signature = await gottaPayTheSOLTroll(searchQuery);
 
     const data = {signature: signature, query: searchQuery };
     console.log(data);
@@ -192,7 +172,6 @@ function Chainsplain() {
               <Box><br />
           <Typography><i>For a very limited time: requests available on DEVNET (free of charge). Cost per query is 0.001 SOL. Switch your wallet RPC cluster to Devnet, fund it with some SOL (`solana airdrop 1`), and make a plaintext query to the Gelato database. </i></Typography><br />
           <Typography><i><b>(!) DO NOT PAY FEES ON MAINNET-BETA RIGHT NOW. IT WILL TAKE YOUR FEE, BUT WILL NOT COMPLETE THE QUERY AS REQUESTED. ENSURE THE DEVNET CLUSTER IS SELECTED IN YOUR WALLET BEFORE PROCEEDING (!)</b></i></Typography><br />
-          <Typography><i>Note: the first query almost always fails. We're working on it. Just submit the query and tx again, go flip tabs for a minute, then you should have your answer.</i></Typography><br />
 
               </Box>
             </>
