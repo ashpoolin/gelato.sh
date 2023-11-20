@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const srcPath = path.resolve(__dirname, '/opt/render/project/src/node_modules/crypto');
-const destPath = path.resolve(__dirname, '/opt/render/project/src/src/pages/crypto');
+const target = path.resolve(__dirname, 'node_modules/crypto-browserify');
+const link = path.resolve(__dirname, 'src/pages/crypto');
 
 
-fs.symlink(srcPath, destPath, 'dir', (err) => {
+fs.symlink(target, link, 'dir', (err) => {
   if (err) {
     console.error('Failed to create symbolic link:', err);
   } else {
