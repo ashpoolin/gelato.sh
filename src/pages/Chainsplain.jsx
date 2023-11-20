@@ -2,7 +2,7 @@ import React, { FC, useState, useCallback } from 'react';
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction} from '@solana/web3.js';
-import { createHash } from '../components/crypto';
+import { createHash } from './crypto';
 import { 
   Card,
   CardContent,
