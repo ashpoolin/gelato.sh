@@ -11,6 +11,7 @@ import Research from "./pages/Research";
 import About from "./pages/About";
 import { Container } from "@mui/material";
 import Whalescale from "./pages/content/Whalescale";
+import Chainsplainoor from "./pages/content/Chainsplainoor";
 // import Rugs from "./pages/content/Rugs";
 import TokenFingerprinting from "./pages/content/TokenFingerprinting";
 
@@ -58,6 +59,7 @@ function App() {
                   <Route path="/research" element={<Research />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/whalescale" element={<Whalescale />} /> 
+                  <Route path="/chainsplainoor" element={<Chainsplainoor />} /> 
                   <Route path="/fingerprinting" element={<TokenFingerprinting />} /> 
                   {/* <Route path="/rugs" element={<Rugs />} />  */}
                 </Routes>

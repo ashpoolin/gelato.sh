@@ -56,6 +56,25 @@ function Research() {
  </Typography> 
  </CardContent> 
  </Card> 
+
+ <Card variant="outlined"> 
+ {/* <CardMedia 
+ component="img" 
+ height="140" 
+ image="image2.jpg" // Replace with your image URL 
+ alt="Image 2" 
+ /> */}
+ <CardContent> 
+ <Typography variant="h6" component="div"> 
+ <Link href="/chainsplainoor"> 
+    Chainsplain.me
+ </Link> 
+ </Typography> 
+ <Typography variant="body2"> 
+ AI-augmented interpretation layer for the Solana blockchain data.
+ </Typography> 
+ </CardContent> 
+ </Card> 
  
  {/* <Card variant="outlined"> 
  <CardMedia 
