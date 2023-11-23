@@ -417,10 +417,10 @@ function Sol() {
         const amount = [];
         dataObj.map((line) => dt.push(line.dt));
         dataObj.map((line) => signature.push(line.signature));
-        dataObj.map((line) => from.push(line.from));
-        dataObj.map((line) => from_label.push(line.from_label));
-        dataObj.map((line) => to.push(line.to));
-        dataObj.map((line) => to_label.push(line.to_label));
+        dataObj.map((line) => from.push(line.source));
+        dataObj.map((line) => from_label.push(line.source_label));
+        dataObj.map((line) => to.push(line.destination));
+        dataObj.map((line) => to_label.push(line.destination_label));
         dataObj.map((line) => amount.push(line.amount));
 
         const grid = dt.map((time, index) => {
