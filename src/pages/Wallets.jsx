@@ -1,20 +1,4 @@
 import React, { useState, useCallback } from "react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  LogarithmicScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from "chart.js";
-
-// import chart devices
-import { Scatter, Bar, Doughnut } from "react-chartjs-2";
 
 // add filtering to tables
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
@@ -38,7 +22,7 @@ import { Box } from "@mui/system";
 import DOMPurify from 'dompurify';
 import { TokenList } from '../data/solana_tokenlist_short.js';
 import { CoingeckoTokenList } from '../data/coingecko_sol_tickers_clean.js';
-import { Connection } from '@solana/web3.js'
+import { Connection, PublicKey } from '@solana/web3.js'
 import axios from 'axios';
 import { TldParser } from "@onsol/tldparser";
 import { getNameOwner, getDomainKey } from "@bonfida/spl-name-service";
@@ -46,25 +30,12 @@ import debounce from "lodash.debounce";
 
 const URL = process.env.REACT_APP_API_URL;
 // const URL = "http://localhost:3001" 
-const API_KEY = process.env.REACT_APP_API_KEY;
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  LogarithmicScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+const HELIUS_RPC_URL = process.env.REACT_APP_HELIUS_RPC_URL;
+const CONNECTION = new Connection(HELIUS_RPC_URL, "confirmed");
 
 const formatNumber = (number) => {
   return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
 };
-
 
 const hasDomainSyntax = (value) => {
   return value.length > 4;
@@ -84,10 +55,10 @@ function Wallets() {
   const getAndSetAddress = async (query) => {
     if (query.length < 4) return;
     if (hasDomainSyntax(query) && query.split('.').length >= 2 ){
-      const connection = new Connection(`https://rpc.helius.xyz/?api-key=${API_KEY}`);
+      // const connection = new Connection(`${HELIUS_RPC_URL}`);
       if (!query.endsWith(".sol")) {
         // parses ans domains
-        const parser = new TldParser(connection)
+        const parser = new TldParser(CONNECTION)
         try {
           const owner = await parser.getOwnerFromDomainTld(query);
           if (owner) setSearchQuery(owner.toString());
@@ -100,7 +71,7 @@ function Wallets() {
             query,
             false,
           );
-          const {registry} = await getNameOwner(connection, domainKey);
+          const {registry} = await getNameOwner(CONNECTION, domainKey);
           if (registry && registry.owner) {
             setSearchQuery(registry.owner.toString())
           }
@@ -110,24 +81,21 @@ function Wallets() {
     }
     setSearchQuery(query)
   };
+
+  const getBalance = async (address) => {
+    const LAMPORTS_PER_SOL = 1_000_000_000;
+    const lamports = await CONNECTION.getBalance(new PublicKey(address));
+    return lamports / LAMPORTS_PER_SOL;
+  }
+
   const getBalancesFromHelius = async () => {
     setWalletLabel("");
+
+    // load owner address
     const address = searchQuery;
-    // const address = "GJRs4FwHtemZ5ZE9x3FNvJ8TMwitKTh21yxdRPqn7npE" 
-    const HELIUS_URL = `https://api.helius.xyz/v0/addresses/${address}/balances?api-key=${API_KEY}`
-    const LAMPORTS_PER_SOL = 1_000_000_000;
 
-    const { data } = await axios.get(HELIUS_URL);
-    // FETCH JUST DOESN'T WORK. ACCESSING ELEMENTS IN OBJECT INCORRECTLY
-    // let data = {};
-    // fetch(HELIUS_URL)
-    // .then((response) => {
-    //   return response.text();
-    // })
-    // .then((apiData) => {
-    //   data = JSON.parse(apiData) // probably here... 
-    // });
 
+    // get address label from Gelato express server
     const labelUrl = `${URL}/labels/${address}`
     // const { labelData } = await axios.get(labelUrl);
       await fetch(labelUrl)
@@ -143,94 +111,84 @@ function Wallets() {
         }
       });
 
+      // get token balances from Helius
         const solanaObject = {}
+
         // Add the SOL native balance first
+        const ownerBalance = await getBalance(address);
         solanaObject.id = 9999999;
         solanaObject.symbol = "SOL"
         solanaObject.mint = "-"
         solanaObject.address = address
-        solanaObject.balance = data.nativeBalance / LAMPORTS_PER_SOL
-        solanaObject.cgid =  "solana";
-        try {
-          const {data} = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=USD`)
-          const price = data[`solana`].usd
-          solanaObject.price = price || 0;
-          solanaObject.value = price * solanaObject.balance;
-        } catch (err) {
-          solanaObject.price = 0;
-          solanaObject.value = 0;
-          console.log(err)
-        }
+        solanaObject.balance = ownerBalance
+        solanaObject.price = "-"
+        solanaObject.total = "-"
 
         let grid = [];
         grid.push(solanaObject);
 
-        // single CoinGecko query to get token prices
-         let cgidLookup = [];
-         let tokenData = {};
 
-        data.tokens.map(async (token, id) => {
-          const tokenMintAddress = token.mint;
-          const tokenBalance = token.amount / (10 ** token.decimals) ; // converted immediately to uiBalance format
-          // filter out non-zero and NFT balances (qty = 1)
-          if (tokenBalance > 0 || tokenBalance !== 1) {
-            let searchField = "address";
-            let searchVal = tokenMintAddress;
-            
-            for (let i=0 ; i < CoingeckoTokenList.length ; i++)
-            {
-              if (CoingeckoTokenList[i][searchField] === searchVal) {
-                cgidLookup.push(CoingeckoTokenList[i].id);
-              } 
-            }
+        // prepare to use Helius Fungible Token Extension
+        const payload = {
+          jsonrpc: '2.0',
+          // id: 'helius-test',
+          method: 'searchAssets',
+          params: {
+            ownerAddress: `${address}`,
+            tokenType: 'fungible' // fungible, nonFungible, regularNft , compressedNft, and all
           }
-        });  
+        }; 
+        
 
-        // query CoinGecko for price
-        const queryString = cgidLookup.join('%2C')
-        const CGURL = `https://api.coingecko.com/api/v3/simple/price?ids=${queryString}&vs_currencies=usd`;
-        const tmpdata = await axios.get(CGURL);
-        tokenData = tmpdata.data
-
-        // Now we build the grid object, b/c we have the required token price and data 
-        data.tokens.map(async (token, id) => {
-          //Parse the account data
-          const tokenAddress = token.tokenAccount;
-          const tokenMintAddress = token.mint;
-          const tokenBalance = token.amount / (10 ** token.decimals) ; // converted immediately to uiBalance format
-          // filter out non-zero and NFT balances (qty = 1)
-          if (tokenBalance > 0 || tokenBalance !== 1) {
-            let searchField = "address";
-            let searchVal = tokenMintAddress;
-
-            for (let i=0 ; i < CoingeckoTokenList.length ; i++)
-            {
-                if (CoingeckoTokenList[i][searchField] === searchVal) {
-                  let myObject = {};
-                  myObject.id = id;
-                  myObject.symbol = CoingeckoTokenList[i].symbol || "-";
-                  myObject.mint = tokenMintAddress;
-                  myObject.address = tokenAddress;
-                  myObject.balance = tokenBalance;
-                  myObject.cgid = CoingeckoTokenList[i].id || "-";
-                  try {
-                    const price = tokenData[CoingeckoTokenList[i].id].usd
-                    myObject.price =  price * CoingeckoTokenList[i].multiplier
-                    myObject.value =  price * tokenBalance 
-                  } catch(err) {
-                    myObject.price =  0 
-                    myObject.value =  0
-                  }
-                  try {
-                    grid.push(myObject)
-                  } catch {}
-                } 
+        let idCounter = 1;
+        // fetch(HELIUS_RPC_URL, {
+          //   method: 'POST',
+          //   headers: {
+            //     'Content-Type': 'application/json'
+            //   },
+            //   body: JSON.stringify(payload)
+            // })
+        // axios.post(`${HELIUS_RPC_URL}`, payload)
+        axios.post(HELIUS_RPC_URL, payload)
+        .then(response => {
+          console.log(response)
+          response.data.result.items.forEach(asset => {
+            let tokenData = {};
+    
+            // don't show me garbage
+            if (asset.token_info.symbol !== undefined) {
+              // symbol,id,uibalance,price_per_token,total_price,currency,associated_token_address
+              tokenData.id = idCounter; //
+              tokenData.symbol = asset.token_info?.symbol;
+              tokenData.mint = asset.id
+              tokenData.address = asset.token_info?.associated_token_address;
+              const balance = asset.token_info?.balance;
+              const decimals = asset.token_info?.decimals;
+              tokenData.balance = balance ? balance / (10 ** decimals) : undefined;
+              tokenData.price = asset.token_info?.price_info?.price_per_token;
+              tokenData.total = asset.token_info?.price_info?.total_price;
+              // const description = asset.content.metadata?.description;
+              // const name = asset.content.metadata?.name;
+              // const token_standard = asset.content.metadata?.token_standard;
+              // token_info
+              // const supply = asset.token_info?.supply;
+              // const token_program = asset.token_info?.token_program;
+              // price_info
+              // const currency = asset.token_info?.price_info?.currency;
+              grid.push(tokenData)
+              idCounter++;
             }
-          }
+          })
+        })
+        .catch(error => {
+          console.error(error);
         });
+
         setWalletBalanceGrid(grid);
         setDisplayAddress(address);
   }
+
+  // Symbol, Mint, Address, Balance, Price (USD), Total (USD)
 
   const walletBalanceGridColumns = [
     { field: "symbol", headerName: "Symbol", GridColDef: "flex", flex: 1 },
@@ -295,7 +253,7 @@ function Wallets() {
           "$" + formatNumber(params.row.price)
     },
     { 
-      field: "value", 
+      field: "total", 
       headerName: "Total (USD)", 
       GridColDef: "flex", 
       flex: 1,
