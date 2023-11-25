@@ -16,13 +16,14 @@ import {
   TextField,
   Button
 } from "@mui/material";
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Box } from "@mui/system";
+// import { Box } from "@mui/system";
 
 import DOMPurify from 'dompurify';
-import { TokenList } from '../data/solana_tokenlist_short.js';
-import { CoingeckoTokenList } from '../data/coingecko_sol_tickers_clean.js';
-import { Connection, PublicKey } from '@solana/web3.js'
+// import { TokenList } from '../data/solana_tokenlist_short.js';
+// import { CoingeckoTokenList } from '../data/coingecko_sol_tickers_clean.js';
+import { Connection, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import axios from 'axios';
 import { TldParser } from "@onsol/tldparser";
 import { getNameOwner, getDomainKey } from "@bonfida/spl-name-service";
@@ -33,8 +34,11 @@ const URL = process.env.REACT_APP_API_URL;
 const HELIUS_RPC_URL = process.env.REACT_APP_HELIUS_RPC_URL;
 const CONNECTION = new Connection(HELIUS_RPC_URL, "confirmed");
 
+// const formatNumber = (number) => {
+//   return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
+// };
 const formatNumber = (number) => {
-  return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
+  return parseFloat(Number(number).toFixed(2)).toLocaleString()
 };
 
 const hasDomainSyntax = (value) => {
@@ -47,6 +51,21 @@ function Wallets() {
   const [walletLabel, setWalletLabel] = useState('');
   const [displayAddress, setDisplayAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState("");
+
+  // const tokenTypes = ['fungible', 'nonFungible', 'regularNft', 'compressedNft', 'all'];
+  // const [selectedType, setSelectedType] = useState('fungible');
+// let selectedType = 'fungible';
+  // const handleTypeChange = async(event, newType) => {
+  //   if (newType !== null) {
+  //     await setSelectedType(newType);
+  //     // selectedType = newType;
+  //     // setSelectedType((newType) => {
+  //       // return newType.value
+  //     // });
+  //     console.log(selectedType);
+  //     // Add logic here to handle the change in tokenType
+  //   }
+  // };
 
   const debouncedGetAndSet = useCallback(
     debounce(async (query) => await getAndSetAddress(query), 750),
@@ -82,12 +101,6 @@ function Wallets() {
     setSearchQuery(query)
   };
 
-  const getBalance = async (address) => {
-    const LAMPORTS_PER_SOL = 1_000_000_000;
-    const lamports = await CONNECTION.getBalance(new PublicKey(address));
-    return lamports / LAMPORTS_PER_SOL;
-  }
-
   const getBalancesFromHelius = async () => {
 
     setWalletLabel("");
@@ -113,34 +126,47 @@ function Wallets() {
         }
       });
 
-      // get token balances from Helius
-        const solanaObject = {}
-
-        // Add the SOL native balance first
-        const ownerBalance = await getBalance(address);
-        solanaObject.id = 1;
-        solanaObject.symbol = "SOL"
-        solanaObject.mint = "-"
-        solanaObject.address = address
-        solanaObject.balance = ownerBalance
-        solanaObject.price = "-"
-        solanaObject.total = "-"
-        setWalletBalanceGrid(prevGrid => [...prevGrid, solanaObject]);
-
         const payload = {
           jsonrpc: '2.0',
           id: 'helius-test',
           method: 'searchAssets',
           params: {
             ownerAddress: `${address}`,
-            tokenType: 'fungible'
+            tokenType: 'fungible',
+            displayOptions: {
+              showNativeBalance: true,
+            }
           }
         };
         
+        // get sol price from Coingecko
+        let solPrice = 0;
+        try {
+          const {data} = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=USD`)
+          const price = data[`solana`].usd
+          solPrice = price || 0;
+        } catch (err) {
+          solPrice = 0;
+          console.log(err)
+        }
 
-        let idCounter = 2;
+        let idCounter = 1;
         axios.post(HELIUS_RPC_URL, payload)
         .then(response => {
+          // GET SOL INFO
+          const ownerBalance = response.data.result.nativeBalance.lamports / LAMPORTS_PER_SOL;
+          const solanaObject = {}
+          solanaObject.id = idCounter;
+          solanaObject.symbol = "SOL"
+          solanaObject.mint = "-"
+          solanaObject.address = address
+          solanaObject.balance = ownerBalance
+          solanaObject.price = solPrice
+          solanaObject.total = ownerBalance * solPrice
+          setWalletBalanceGrid(prevGrid => [...prevGrid, solanaObject]);
+          idCounter++;
+          
+          // GET SPL INFO
           response.data.result.items.forEach(asset => {
             
             // don't show me garbage
@@ -267,6 +293,13 @@ function Wallets() {
           <TextField id="standard-basic" label="Search an address" variant="standard" onChange={(e) => debouncedGetAndSet( DOMPurify.sanitize(e.target.value.trim()) )} />
           <Button color="secondary" onClick={getBalancesFromHelius}>SEARCH</Button>
           <br /><br />
+          {/* <ToggleButtonGroup color="secondary" value={selectedType} exclusive onChange={handleTypeChange}>
+            {tokenTypes.map((type) => (
+              <ToggleButton key={type} value={type}>
+                {type}
+              </ToggleButton> 
+            ))}
+          </ToggleButtonGroup> */}
           <Divider sx={{ marginY: 2 }} />
 
             <>
@@ -295,13 +328,9 @@ function Wallets() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                Beware that this a DeFi balance tracker that filters out zero balances, NFTs and anything with balance exactly equal to 1.
-                Empty SPL token accounts can be informative, as the account may hold substantial history. However, empty accounts and 
-                plausible NFT accounts (balance = 1) are both omitted here to prevent clutter. <br />
+                Beware that this a DeFi balance tracker that only shows 'fungible' tokens, and filters out unidentified mint IDs, compressed and other non-fungible assets (NFTs). We'll add a selector for these in the future. <br />
                 Note that the search only accepts wallet owners (not associated token addresses), .sol (Solana Name Service; SNS), and .abc (Alternative Name Service; ANS) <br />
-                (!) CAUTION w/ PRICES: IF THE TOKEN PRICE LOOKS WRONG, IT PROBABLY IS. The tracker tries to map token mint IDs to ticker symbol, then to known API handles on Coingecko. 
-                The sheer volume of fake/spam tokens on Solana, as well as duplicated tickers, makes correctly reconciling price with the actual token difficult. USER BEWARE!   
-
+                (!) CAUTION w/ PRICES: IF THE TOKEN PRICE LOOKS WRONG, IT PROBABLY IS. Check a chart for more current info.
               </Typography>
               <br/>
               <Typography>
