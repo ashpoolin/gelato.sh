@@ -402,7 +402,7 @@ function Sol() {
     getWebhookEvents();
   }, []);
   function getWebhookEvents() {
-    fetch(`${URL}/whevents`)
+    fetch(`${URL}/wsevents`)
       .then((response) => {
         return response.text();
       })
@@ -421,7 +421,7 @@ function Sol() {
         dataObj.map((line) => from_label.push(line.source_label));
         dataObj.map((line) => to.push(line.destination));
         dataObj.map((line) => to_label.push(line.destination_label));
-        dataObj.map((line) => amount.push(line.amount));
+        dataObj.map((line) => amount.push(line.uiamount));
 
         const grid = dt.map((time, index) => {
           let myObject = {};
