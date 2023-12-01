@@ -21,8 +21,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 // import { Box } from "@mui/system";
 
 import DOMPurify from 'dompurify';
-// import { TokenList } from '../data/solana_tokenlist_short.js';
-// import { CoingeckoTokenList } from '../data/coingecko_sol_tickers_clean.js';
 import { Connection, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import axios from 'axios';
 import { TldParser } from "@onsol/tldparser";
@@ -139,30 +137,21 @@ function Wallets() {
           }
         };
         
-        // get sol price from Coingecko
-        let solPrice = 0;
-        try {
-          const {data} = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=USD`)
-          const price = data[`solana`].usd
-          solPrice = price || 0;
-        } catch (err) {
-          solPrice = 0;
-          console.log(err)
-        }
-
         let idCounter = 1;
         axios.post(HELIUS_RPC_URL, payload)
         .then(response => {
           // GET SOL INFO
           const ownerBalance = response.data.result.nativeBalance.lamports / LAMPORTS_PER_SOL;
+          const pricePerSol = response.data.result.nativeBalance.price_per_sol;
+          const totalPrice = response.data.result.nativeBalance.total_price;
           const solanaObject = {}
           solanaObject.id = idCounter;
-          solanaObject.symbol = "SOL"
-          solanaObject.mint = "-"
-          solanaObject.address = address
-          solanaObject.balance = ownerBalance
-          solanaObject.price = solPrice
-          solanaObject.total = ownerBalance * solPrice
+          solanaObject.symbol = "SOL";
+          solanaObject.mint = "-";
+          solanaObject.address = address;
+          solanaObject.balance = ownerBalance;
+          solanaObject.price = pricePerSol;
+          solanaObject.total = totalPrice;
           setWalletBalanceGrid(prevGrid => [...prevGrid, solanaObject]);
           idCounter++;
           
