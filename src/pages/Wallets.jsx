@@ -21,7 +21,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 // import { Box } from "@mui/system";
 
 import DOMPurify from 'dompurify';
-import { Connection, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { Connection, LAMPORTS_PER_SOL, StakeProgram } from '@solana/web3.js'
 import axios from 'axios';
 import { TldParser } from "@onsol/tldparser";
 import { getNameOwner, getDomainKey } from "@bonfida/spl-name-service";
@@ -31,10 +31,8 @@ const URL = process.env.REACT_APP_API_URL;
 // const URL = "http://localhost:3001" 
 const HELIUS_RPC_URL = process.env.REACT_APP_HELIUS_RPC_URL;
 const CONNECTION = new Connection(HELIUS_RPC_URL, "confirmed");
+const STAKE_PROGRAM_ID = StakeProgram.programId;
 
-// const formatNumber = (number) => {
-//   return parseFloat((new Number(number)).toFixed(2)).toLocaleString()
-// };
 const formatNumber = (number) => {
   return parseFloat(Number(number).toFixed(2)).toLocaleString()
 };
@@ -44,27 +42,24 @@ const hasDomainSyntax = (value) => {
 };
 
 function Wallets() {
+
+  // VARIOUS STATES VARIABLES
   const [tab, setTab] = useState(0);
   const [walletBalanceGrid, setWalletBalanceGrid] = useState([]);
+  const [totalWalletValue, setTotalWalletValue] = useState(0);
   const [walletLabel, setWalletLabel] = useState('');
+  const [stakeWalletLabel, setStakeWalletLabel] = useState('');
   const [displayAddress, setDisplayAddress] = useState('');
+  const [stakeDisplayAddress, setStakeDisplayAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState("");
+  const [stakeGrid, setStakeGrid] = useState([]);
+  const [selectedStakeType, setSelectedStakeType] = useState('all');
+  const [totalStakeBalance, setTotalStakeBalance] = useState(0);
+  const [totalStakeActive, setTotalStakeActive] = useState(0);
+  const [totalLockedStakeBalance, setTotalLockedStakeBalance] = useState(0);
+  const [totalUnlockedStakeBalance, setTotalUnlockedStakeBalance] = useState(0);
 
-  // const tokenTypes = ['fungible', 'nonFungible', 'regularNft', 'compressedNft', 'all'];
-  // const [selectedType, setSelectedType] = useState('fungible');
-// let selectedType = 'fungible';
-  // const handleTypeChange = async(event, newType) => {
-  //   if (newType !== null) {
-  //     await setSelectedType(newType);
-  //     // selectedType = newType;
-  //     // setSelectedType((newType) => {
-  //       // return newType.value
-  //     // });
-  //     console.log(selectedType);
-  //     // Add logic here to handle the change in tokenType
-  //   }
-  // };
-
+  // NAME SERVICE LOOKUP AND INPUT CLEANING... SNS AND ANS DON'T WORK RIGHT YET
   const debouncedGetAndSet = useCallback(
     debounce(async (query) => await getAndSetAddress(query), 750),
     [],
@@ -99,6 +94,7 @@ function Wallets() {
     setSearchQuery(query)
   };
 
+  // FUNCTIONS AND GRID FOR THE WALLET PROFILER
   const getBalancesFromHelius = async () => {
 
     setWalletLabel("");
@@ -138,6 +134,7 @@ function Wallets() {
         };
         
         let idCounter = 1;
+        let walletValue = 0;
         axios.post(HELIUS_RPC_URL, payload)
         .then(response => {
           // GET SOL INFO
@@ -154,6 +151,7 @@ function Wallets() {
           solanaObject.total = totalPrice;
           setWalletBalanceGrid(prevGrid => [...prevGrid, solanaObject]);
           idCounter++;
+          walletValue += totalPrice;
           
           // GET SPL INFO
           response.data.result.items.forEach(asset => {
@@ -172,11 +170,10 @@ function Wallets() {
               tokenData.total = asset.token_info?.price_info?.total_price;
               setWalletBalanceGrid(prevGrid => [...prevGrid, tokenData]);
               idCounter++;
-              // console.log(
-                // `${tokenData.id},${tokenData.symbol},${tokenData.mint},${tokenData.address},${tokenData.balance},${tokenData.price},${tokenData.total}`
-              // );
+              walletValue += tokenData.total;
             }
           })
+          setTotalWalletValue(walletValue);
         })
         .catch(error => {
           console.error(error);
@@ -259,10 +256,248 @@ function Wallets() {
     },
   ];
 
+  // Functions for the Stake Account Inspector
+  const stakeTypes = ['active', 'all'];
+  const handleStakeTypeChange = async(event, newType) => {
+    if (newType !== null) {
+      setSelectedStakeType(newType);
+    }
+  };
+
+  const getStakeAccountInfo = async () => {
+
+    setStakeWalletLabel("");
+    setStakeGrid([]);
+
+    // load owner address
+    const address = searchQuery;
+
+    // get address label from Gelato express server
+    const labelUrl = `${URL}/labels/${address}`
+    // const { labelData } = await axios.get(labelUrl);
+      await fetch(labelUrl)
+      .then((response) => {
+        return response.text();
+      })
+      .then((labelData) => {
+        try {
+          const label = (JSON.parse(labelData))[0].label
+          setStakeWalletLabel(label);
+        } catch {
+          setStakeWalletLabel(address);
+        }
+      });
+
+      const epochInfo = await CONNECTION.getEpochInfo('confirmed');
+      const currentEpoch = epochInfo?.epoch;
+
+      const accounts = await CONNECTION.getParsedProgramAccounts(
+        STAKE_PROGRAM_ID,
+        {
+          filters: [
+            {
+              memcmp: {
+                offset: 12, // number of bytes
+                bytes: address, // base58 encoded string
+              },
+            },
+          ],
+        },
+      );
+
+      let idCounter = 1;
+      let totalBalance = 0;
+      let totalStake = 0;
+      let totalLockedBalance = 0;
+      let totalUnlockedBalance = 0;
+      accounts.forEach((account, i) => {
+        let stakeAccount = {};
+        stakeAccount.id = idCounter;
+        stakeAccount.stakePubkey = account.pubkey?.toString();
+        stakeAccount.balance = account.account?.lamports / LAMPORTS_PER_SOL;
+        stakeAccount.staker = account.account.data.parsed.info.meta.authorized?.staker;
+        stakeAccount.withdrawer = account.account.data.parsed.info.meta.authorized?.withdrawer;
+        stakeAccount.custodian = account.account.data.parsed.info.meta.lockup?.custodian;
+        stakeAccount.unlockEpoch = account.account.data.parsed.info.meta.lockup?.epoch;
+        const unlockUnixTimestamp = account.account.data.parsed.info.meta.lockup?.unixTimestamp;
+        stakeAccount.unlockUnixTimestamp = unlockUnixTimestamp;
+        stakeAccount.unlockDate = unlockUnixTimestamp ? (new Date(unlockUnixTimestamp * 1000)).toISOString().split('T')[0]: null;
+        stakeAccount.type = account.account.data.parsed?.type;
+        try {
+          if (stakeAccount.type === 'delegated') {
+            let deactivationEpoch = account.account.data.parsed.info.stake.delegation?.deactivationEpoch || null;
+            if (currentEpoch <= deactivationEpoch) {
+              stakeAccount.stake = account.account.data.parsed.info.stake.delegation?.stake / LAMPORTS_PER_SOL || null;
+              stakeAccount.activationEpoch = account.account.data.parsed.info.stake.delegation?.activationEpoch || null;
+              stakeAccount.active = true;
+              stakeAccount.deactivationEpoch = null;
+              stakeAccount.voter = account.account.data.parsed.info.stake.delegation?.voter || null;
+
+            } else {
+              stakeAccount.stake = null;
+              stakeAccount.activationEpoch = null;
+              stakeAccount.active = false;
+              stakeAccount.deactivationEpoch = deactivationEpoch;
+              stakeAccount.voter = null;
+            }
+          } else {
+            stakeAccount.active = false;
+          }
+        } catch (error) {
+          // console.error(error);
+        }
+        if (selectedStakeType === 'active') {
+          if (stakeAccount.active) {
+            setStakeGrid(prevGrid => [...prevGrid, stakeAccount]);
+            idCounter++;
+          }
+        } else {
+          setStakeGrid(prevGrid => [...prevGrid, stakeAccount]);
+          idCounter++;
+        }
+        totalBalance += stakeAccount.balance;
+        totalStake += stakeAccount.stake;
+        if (stakeAccount.unlockDate) {
+          totalLockedBalance += stakeAccount.balance;
+        } else {
+          totalUnlockedBalance += stakeAccount.balance;
+        }
+      });
+      console.log(JSON.stringify(stakeGrid));
+      // setDisplayAddress(address);
+      setStakeDisplayAddress(address);
+      setTotalStakeBalance(totalBalance);
+      setTotalStakeActive(totalStake);
+      setTotalLockedStakeBalance(totalLockedBalance);
+      setTotalUnlockedStakeBalance(totalUnlockedBalance);
+  }
+
+  const stakeGridColumns = [
+    {
+      field: "stakePubkey",
+      headerName: "Account",
+      GridColDef: "flex",
+      flex: 1,
+      renderCell: (params) => (
+          params.row.stakePubkey === "-" ? "N/A" :
+          <Link
+          color="secondary"
+          href={
+            "https://solana.fm/address/" +
+            params.row.stakePubkey +
+            "?cluster=mainnet-qn1"
+          }
+          >
+          {params.row.stakePubkey.slice(0, 4)}...
+          {params.row.stakePubkey.slice(params.row.stakePubkey.length - 4)}
+          </Link>
+      ),
+    },
+    { 
+      field: "balance", 
+      headerName: "Balance", 
+      GridColDef: "flex", 
+      flex: 1,
+      renderCell: (params) =>
+        Math.abs(params.row.balance) > 1000000
+          ? formatNumber(params.row.balance) +
+            " " +
+            String.fromCodePoint("0x1F6A9")
+          : formatNumber(params.row.balance),
+    },
+    { field: "type", headerName: "Type", GridColDef: "flex", flex: 1 },
+    { field: "active", headerName: "Active", GridColDef: "flex", flex: 1 },
+    { 
+      field: "stake", 
+      headerName: "Stake", 
+      GridColDef: "flex", 
+      flex: 1,
+      renderCell: (params) =>
+        Math.abs(params.row.stake) > 1000000
+          ? formatNumber(params.row.stake) +
+            " " +
+            String.fromCodePoint("0x1F6A9")
+          : formatNumber(params.row.stake),
+    },
+    {
+      field: "staker",
+      headerName: "Staker",
+      GridColDef: "flex",
+      flex: 1,
+      renderCell: (params) => (
+        <Link
+          color="secondary"
+          href={
+            "https://solana.fm/address/" +
+            params.row.staker +
+            "?cluster=mainnet-qn1"
+          }
+        >
+          {params.row.staker.slice(0, 4)}...
+          {params.row.staker.slice(params.row.staker.length - 4)}
+        </Link>
+      ),
+    },
+    {
+      field: "withdrawer",
+      headerName: "Withdrawer",
+      GridColDef: "flex",
+      flex: 1,
+      renderCell: (params) => (
+        <Link
+          color="secondary"
+          href={
+            "https://solana.fm/address/" +
+            params.row.withdrawer +
+            "?cluster=mainnet-qn1"
+          }
+        >
+          {params.row.withdrawer.slice(0, 4)}...
+          {params.row.withdrawer.slice(params.row.withdrawer.length - 4)}
+        </Link>
+      ),
+    },
+    {
+      field: "vote",
+      headerName: "Validator",
+      GridColDef: "flex",
+      flex: 1,
+      renderCell: (params) => (
+        params.row.voter ? (
+          <Link
+            color="secondary"
+            href={
+              "https://solana.fm/address/" +
+              params.row.voter +
+              "?cluster=mainnet-qn1"
+            }
+          >
+            {params.row.voter.slice(0, 4)}...{params.row.voter.slice(params.row.voter.length - 4)}
+          </Link>
+        ) : (
+          <span>Not Delegated</span>
+        )
+      ),
+    },
+    // { field: "activationEpoch", headerName: "Activated", GridColDef: "flex", flex: 1 },
+    // { field: "deactivationEpoch", headerName: "Deactivated", GridColDef: "flex", flex: 1 },
+    { 
+      field: "deactivationEpoch", 
+      headerName: "Deactivated", 
+      GridColDef: "flex", 
+      flex: 1,
+      renderCell: (params) => {
+        <span>{params.row.activationEpoch} / {params.row.deactivationEpoch}</span>
+      }
+    },
+    { field: "unlockDate", headerName: "Unlock Date", GridColDef: "flex", flex: 1 },
+  ];
+
   return (
     <Stack alignItems={"center"}>
       <Tabs value={tab} onChange={(_, val) => setTab(val)}>
         <Tab label="Wallet Profiler" />
+        <Tab label="Stake Accounts" />
       </Tabs>
 
       {tab === 0 && (
@@ -277,25 +512,20 @@ function Wallets() {
         >
           <div style={{ height: '100%' }}>
           <Typography variant="h5">
-                Balances
+                Fungible Token Balances
           </Typography><br />
           <TextField id="standard-basic" label="Search an address" variant="standard" onChange={(e) => debouncedGetAndSet( DOMPurify.sanitize(e.target.value.trim()) )} />
-          <Button color="secondary" onClick={getBalancesFromHelius}>SEARCH</Button>
+          <Button color="secondary" onClick={getBalancesFromHelius} sx={{ marginLeft: '20px' }}>SEARCH</Button>
           <br /><br />
-          {/* <ToggleButtonGroup color="secondary" value={selectedType} exclusive onChange={handleTypeChange}>
-            {tokenTypes.map((type) => (
-              <ToggleButton key={type} value={type}>
-                {type}
-              </ToggleButton> 
-            ))}
-          </ToggleButtonGroup> */}
           <Divider sx={{ marginY: 2 }} />
 
             <>
-               <Typography variant="h5">
-                {/* {walletLabel} */}
-                {walletLabel ? walletLabel : displayAddress}
+              <Typography variant="h5">
+              {walletLabel ? <Link color="secondary" href={"https://solana.fm/address/" + displayAddress + "?cluster=mainnet-qn1"}>{walletLabel}</Link> : <Link color="secondary" href={"https://solana.fm/address/" + displayAddress + "?cluster=mainnet-qn1"}>{displayAddress}</Link>}
               </Typography>
+              <Typography>
+                    {(totalWalletValue > 0) ? `Total Fungible Token Value (USD): $${formatNumber(totalWalletValue)}` : null}
+                  </Typography>
               <br />
               <DataGrid
                 sx={{ minHeight: '600px' }}
@@ -338,6 +568,110 @@ function Wallets() {
         </Paper>
       )}
 
+{tab === 1 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <div style={{ height: '100%' }}>
+          <Typography variant="h5">
+                Stake Account Inspector
+          </Typography><br />
+          {/* <br /><br /> */}
+          <ToggleButtonGroup
+            color="secondary"
+            value={selectedStakeType}
+            exclusive
+            onChange={handleStakeTypeChange}
+            sx={{ marginRight: '20px' }}
+          >
+            {stakeTypes.map((type) => (
+              <ToggleButton key={type} value={type}>
+                {type}
+              </ToggleButton> 
+            ))}
+          </ToggleButtonGroup>
+          <TextField
+            id="standard-basic"
+            label="Search an Owner or Stake Authority"
+            variant="standard"
+            onChange={(e) => debouncedGetAndSet(DOMPurify.sanitize(e.target.value.trim()))}
+          />
+          <Button
+            color="secondary"
+            onClick={getStakeAccountInfo}
+            sx={{ marginLeft: '20px' }}
+          >
+            SEARCH
+          </Button>
+
+          <Divider sx={{ marginY: 2 }} />
+
+            <>
+                  <Typography variant="h5">
+                    {stakeWalletLabel ? <Link color="secondary" href={"https://solana.fm/address/" + stakeDisplayAddress + "?cluster=mainnet-qn1"}>{stakeWalletLabel}</Link> : <Link color="secondary" href={"https://solana.fm/address/" + stakeDisplayAddress + "?cluster=mainnet-qn1"}>{stakeDisplayAddress}</Link>}
+                  </Typography>
+                  <Typography>
+                    {(totalStakeBalance > 0) ? `Stake Account(s) Total Balance: ${formatNumber(totalStakeBalance)}` : null}
+                  </Typography>
+                  <Typography>
+                    {(totalStakeActive > 0) ? `Stake Account(s) Total Active Stake: ${formatNumber(totalStakeActive)}` : null}
+                  </Typography>
+                  <Typography>
+                    {(totalLockedStakeBalance > 0) ? `Stake Account(s) Total Locked Balance: ${formatNumber(totalLockedStakeBalance)}` : null}
+                  </Typography>
+                  <Typography>
+                    {(totalUnlockedStakeBalance > 0) ? `Stake Account(s) Total Unlocked Balance: ${formatNumber(totalUnlockedStakeBalance)}` : null}
+                  </Typography>
+              <br />
+              <DataGrid
+                sx={{ minHeight: '600px' }}
+                rows={stakeGrid}
+                columns={stakeGridColumns}
+                components={{ Toolbar: GridToolbar }}
+              />
+            </>
+          <Divider sx={{ marginY: 2 }} />
+          <Accordion
+            elevation={2}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+            <Typography>Stake Account Details</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                1. The tool can search for all stake accounts for which a wallet is the Stake Authority. <br />
+                2. Choose the rocker button between "active" for only active stake accounts or "all" for all stake accounts <br />
+                3. Balance and active stake values are is SOL, not Lamports <br />
+                4. Type field shows the reported state of the account, typically "delegated" or "initialized" <br />
+                5. The "Deactivated" column shows the deactivation epoch for inactive stake accounts. Otherwise it is null<br />
+                6. The "Unlock Date" column shows the unlock date for stake accounts with a lockup period. If there is no lockup, it is null<br /> 
+              </Typography>
+              <br/>
+              <Typography>
+                For more detail, view the address on a dedicated block explorer: &nbsp;
+                <Link
+                color="secondary"
+                href={
+                  "https://solana.fm/address/" +
+                  stakeDisplayAddress +
+                  "?cluster=mainnet-qn1"
+                }>solana.fm</Link>
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          </div>
+        </Paper>
+      )}
     </Stack>
   );
 }
