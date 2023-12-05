@@ -54,10 +54,20 @@ function Wallets() {
   const [searchQuery, setSearchQuery] = useState("");
   const [stakeGrid, setStakeGrid] = useState([]);
   const [selectedStakeType, setSelectedStakeType] = useState('all');
+  const [selectedStakeKeyType, setSelectedStakeKeyType] = useState('staker');
+  const [selectedStakeKeyOffset, setSelectedStakeKeyOffset] = useState(12);
   const [totalStakeBalance, setTotalStakeBalance] = useState(0);
   const [totalStakeActive, setTotalStakeActive] = useState(0);
   const [totalLockedStakeBalance, setTotalLockedStakeBalance] = useState(0);
-  const [totalUnlockedStakeBalance, setTotalUnlockedStakeBalance] = useState(0);
+  const [totalUnlockedStakeBalance, setTotalUnlockedStakeBalance] = useState(0); 
+
+  // stakeAccountOffsetMap.get(programAddress)
+  const stakeAccountOffsetMap = new Map([
+    ["staker", 12],
+    ["withdrawer", 44],
+    ["custodian", 92],
+    ["voter", 124]
+  ]);
 
   // NAME SERVICE LOOKUP AND INPUT CLEANING... SNS AND ANS DON'T WORK RIGHT YET
   const debouncedGetAndSet = useCallback(
@@ -264,113 +274,176 @@ function Wallets() {
     }
   };
 
+  const stakeKeyTypes = ['staker', 'withdrawer', 'custodian', 'voter'];
+  const handleStakeKeyTypeChange = async(event, newType) => {
+    if (newType !== null) {
+      setSelectedStakeKeyType(newType);
+      setSelectedStakeKeyOffset(stakeAccountOffsetMap.get(newType));
+    }
+  };
+
   const getStakeAccountInfo = async () => {
+    const timeout = 10000;
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), timeout)
+    );
 
-    setStakeWalletLabel("");
-    setStakeGrid([]);
+    // Create a promise for the getStakeAccountInfo operation
+    // const getStakeAccountInfoPromise = new Promise(async (resolve, reject) => {
+    //   try {
+        setStakeWalletLabel("");
+        setStakeGrid([]);
+        setStakeDisplayAddress("");
+        setTotalStakeBalance(null);
+        setTotalStakeActive(null);
+        setTotalLockedStakeBalance(null);
+        setTotalUnlockedStakeBalance(null);
 
-    // load owner address
-    const address = searchQuery;
+        // load owner address
+        const address = searchQuery;
 
-    // get address label from Gelato express server
-    const labelUrl = `${URL}/labels/${address}`
-    // const { labelData } = await axios.get(labelUrl);
-      await fetch(labelUrl)
-      .then((response) => {
-        return response.text();
-      })
-      .then((labelData) => {
+        // get address label from Gelato express server
+        const labelUrl = `${URL}/labels/${address}`;
+        // const { labelData } = await axios.get(labelUrl);
+        await fetch(labelUrl)
+          .then((response) => {
+            return response.text();
+          })
+          .then((labelData) => {
+            try {
+              const label = JSON.parse(labelData)[0].label;
+              setStakeWalletLabel(label);
+            } catch {
+              setStakeWalletLabel(address);
+            }
+          });
+
+        const epochInfo = await CONNECTION.getEpochInfo("confirmed");
+        const currentEpoch = epochInfo?.epoch;
+
+        let accounts = [];
+        const getParsedProgramAccountsPromise = new Promise(async (resolve, reject) => {
+          try {
+            accounts = await CONNECTION.getParsedProgramAccounts(
+              STAKE_PROGRAM_ID,
+              {
+                filters: [
+                  {
+                    memcmp: {
+                      offset: selectedStakeKeyOffset, // number of bytes
+                      bytes: address, // base58 encoded string
+                    },
+                  },
+                ],
+              }
+            );
+            resolve(accounts);
+          } catch (error) {
+            reject(error);
+          }
+        });
+
         try {
-          const label = (JSON.parse(labelData))[0].label
-          setStakeWalletLabel(label);
-        } catch {
-          setStakeWalletLabel(address);
+          // Race the getParsedProgramAccountsPromise against the timeoutPromise
+          const result = await Promise.race([getParsedProgramAccountsPromise, timeoutPromise]);
+          // Handle the result
+        } catch (error) {
+          if (error.message === "Request timed out") {
+            // Handle timeout error
+            console.log("we timed out");
+          } else {
+            // Handle other errors
+            console.log("general shit the bed error");
+          }
         }
-      });
 
-      const epochInfo = await CONNECTION.getEpochInfo('confirmed');
-      const currentEpoch = epochInfo?.epoch;
-
-      const accounts = await CONNECTION.getParsedProgramAccounts(
-        STAKE_PROGRAM_ID,
-        {
-          filters: [
-            {
-              memcmp: {
-                offset: 12, // number of bytes
-                bytes: address, // base58 encoded string
-              },
-            },
-          ],
-        },
-      );
-
-      let idCounter = 1;
-      let totalBalance = 0;
-      let totalStake = 0;
-      let totalLockedBalance = 0;
-      let totalUnlockedBalance = 0;
-      accounts.forEach((account, i) => {
-        let stakeAccount = {};
-        stakeAccount.id = idCounter;
-        stakeAccount.stakePubkey = account.pubkey?.toString();
-        stakeAccount.balance = account.account?.lamports / LAMPORTS_PER_SOL;
-        stakeAccount.staker = account.account.data.parsed.info.meta.authorized?.staker;
-        stakeAccount.withdrawer = account.account.data.parsed.info.meta.authorized?.withdrawer;
-        stakeAccount.custodian = account.account.data.parsed.info.meta.lockup?.custodian;
-        stakeAccount.unlockEpoch = account.account.data.parsed.info.meta.lockup?.epoch;
-        const unlockUnixTimestamp = account.account.data.parsed.info.meta.lockup?.unixTimestamp;
-        stakeAccount.unlockUnixTimestamp = unlockUnixTimestamp;
-        stakeAccount.unlockDate = unlockUnixTimestamp ? (new Date(unlockUnixTimestamp * 1000)).toISOString().split('T')[0]: null;
-        stakeAccount.type = account.account.data.parsed?.type;
-        try {
-          if (stakeAccount.type === 'delegated') {
-            let deactivationEpoch = account.account.data.parsed.info.stake.delegation?.deactivationEpoch || null;
-            if (currentEpoch <= deactivationEpoch) {
-              stakeAccount.stake = account.account.data.parsed.info.stake.delegation?.stake / LAMPORTS_PER_SOL || null;
-              stakeAccount.activationEpoch = account.account.data.parsed.info.stake.delegation?.activationEpoch || null;
-              stakeAccount.active = true;
-              stakeAccount.deactivationEpoch = null;
-              stakeAccount.voter = account.account.data.parsed.info.stake.delegation?.voter || null;
-
+        let idCounter = 1;
+        let totalBalance = 0;
+        let totalStake = 0;
+        let totalLockedBalance = 0;
+        let totalUnlockedBalance = 0;
+        accounts.forEach((account, i) => {
+          let stakeAccount = {};
+          stakeAccount.id = idCounter;
+          stakeAccount.stakePubkey = account.pubkey?.toString();
+          stakeAccount.balance = account.account?.lamports / LAMPORTS_PER_SOL;
+          stakeAccount.staker =
+            account.account.data.parsed.info.meta.authorized?.staker;
+          stakeAccount.withdrawer =
+            account.account.data.parsed.info.meta.authorized?.withdrawer;
+          stakeAccount.custodian =
+            account.account.data.parsed.info.meta.lockup?.custodian;
+          stakeAccount.unlockEpoch =
+            account.account.data.parsed.info.meta.lockup?.epoch;
+          const unlockUnixTimestamp =
+            account.account.data.parsed.info.meta.lockup?.unixTimestamp;
+          stakeAccount.unlockUnixTimestamp = unlockUnixTimestamp;
+          stakeAccount.unlockDate = unlockUnixTimestamp
+            ? new Date(unlockUnixTimestamp * 1000).toISOString().split("T")[0]
+            : null;
+          stakeAccount.type = account.account.data.parsed?.type;
+          try {
+            if (stakeAccount.type === "delegated") {
+              let deactivationEpoch =
+                account.account.data.parsed.info.stake.delegation
+                  ?.deactivationEpoch || null;
+              if (currentEpoch <= deactivationEpoch) {
+                stakeAccount.stake =
+                  account.account.data.parsed.info.stake.delegation?.stake /
+                    LAMPORTS_PER_SOL || null;
+                stakeAccount.activationEpoch =
+                  account.account.data.parsed.info.stake.delegation
+                    ?.activationEpoch || null;
+                stakeAccount.active = true;
+                stakeAccount.deactivationEpoch = null;
+                stakeAccount.voter =
+                  account.account.data.parsed.info.stake.delegation?.voter ||
+                  null;
+              } else {
+                stakeAccount.stake = null;
+                stakeAccount.activationEpoch = null;
+                stakeAccount.active = false;
+                stakeAccount.deactivationEpoch = deactivationEpoch;
+                stakeAccount.voter = null;
+              }
             } else {
-              stakeAccount.stake = null;
-              stakeAccount.activationEpoch = null;
               stakeAccount.active = false;
-              stakeAccount.deactivationEpoch = deactivationEpoch;
-              stakeAccount.voter = null;
+            }
+          } catch (error) {
+            // console.error(error);
+          }
+          if (selectedStakeType === "active") {
+            if (stakeAccount.active) {
+              setStakeGrid((prevGrid) => [...prevGrid, stakeAccount]);
+              idCounter++;
             }
           } else {
-            stakeAccount.active = false;
-          }
-        } catch (error) {
-          // console.error(error);
-        }
-        if (selectedStakeType === 'active') {
-          if (stakeAccount.active) {
-            setStakeGrid(prevGrid => [...prevGrid, stakeAccount]);
+            setStakeGrid((prevGrid) => [...prevGrid, stakeAccount]);
             idCounter++;
           }
-        } else {
-          setStakeGrid(prevGrid => [...prevGrid, stakeAccount]);
-          idCounter++;
-        }
-        totalBalance += stakeAccount.balance;
-        totalStake += stakeAccount.stake;
-        if (stakeAccount.unlockDate) {
-          totalLockedBalance += stakeAccount.balance;
-        } else {
-          totalUnlockedBalance += stakeAccount.balance;
-        }
-      });
-      console.log(JSON.stringify(stakeGrid));
-      // setDisplayAddress(address);
-      setStakeDisplayAddress(address);
-      setTotalStakeBalance(totalBalance);
-      setTotalStakeActive(totalStake);
-      setTotalLockedStakeBalance(totalLockedBalance);
-      setTotalUnlockedStakeBalance(totalUnlockedBalance);
-  }
+          totalBalance += stakeAccount.balance;
+          totalStake += stakeAccount.stake;
+          if (stakeAccount.unlockDate) {
+            totalLockedBalance += stakeAccount.balance;
+          } else {
+            totalUnlockedBalance += stakeAccount.balance;
+          }
+        });
+        // console.log(JSON.stringify(stakeGrid));
+        // setDisplayAddress(address);
+        setStakeDisplayAddress(address);
+        setTotalStakeBalance(totalBalance);
+        setTotalStakeActive(totalStake);
+        setTotalLockedStakeBalance(totalLockedBalance);
+        setTotalUnlockedStakeBalance(totalUnlockedBalance);
+      // } catch (error) {
+      //   // Call reject() if the operation fails
+      //   reject(error);
+      // }
+    // });
+    // Use Promise.race() to race the timeoutPromise against the getStakeAccountInfoPromise
+    // return Promise.race([getStakeAccountInfoPromise, timeoutPromise]);
+  };
 
   const stakeGridColumns = [
     {
@@ -582,13 +655,39 @@ function Wallets() {
           <Typography variant="h5">
                 Stake Account Inspector
           </Typography><br />
-          {/* <br /><br /> */}
+          <TextField
+            id="standard-basic"
+            label="Search by Staker, Withdrawer, Voter, Custodian"
+            variant="standard"
+            onChange={(e) => debouncedGetAndSet(DOMPurify.sanitize(e.target.value.trim()))}
+          />
+          <Button
+            color="secondary"
+            onClick={async () => {
+              try {
+                await getStakeAccountInfo();
+                // Continue processing if successful...
+              } catch (error) {
+                if (error.message === 'Request timed out') {
+                  // Display timeout message to the UI
+                } else {
+                  // Handle other errors
+                  console.log('An error occurred:', error);
+                }
+              }
+            }}
+            sx={{ marginLeft: '20px', marginRight: '20px' }}
+          >
+            SEARCH
+          </Button>
           <ToggleButtonGroup
             color="secondary"
             value={selectedStakeType}
             exclusive
             onChange={handleStakeTypeChange}
-            sx={{ marginRight: '20px' }}
+            sx={{
+              marginRight: '20px',
+            }}
           >
             {stakeTypes.map((type) => (
               <ToggleButton key={type} value={type}>
@@ -596,20 +695,19 @@ function Wallets() {
               </ToggleButton> 
             ))}
           </ToggleButtonGroup>
-          <TextField
-            id="standard-basic"
-            label="Search an Owner or Stake Authority"
-            variant="standard"
-            onChange={(e) => debouncedGetAndSet(DOMPurify.sanitize(e.target.value.trim()))}
-          />
-          <Button
+          <ToggleButtonGroup
             color="secondary"
-            onClick={getStakeAccountInfo}
-            sx={{ marginLeft: '20px' }}
+            value={selectedStakeKeyType}
+            exclusive
+            onChange={handleStakeKeyTypeChange}
+            sx={{ marginRight: '20px' }}
           >
-            SEARCH
-          </Button>
-
+            {stakeKeyTypes.map((type) => (
+              <ToggleButton key={type} value={type}>
+                {type}
+              </ToggleButton> 
+            ))}
+          </ToggleButtonGroup>
           <Divider sx={{ marginY: 2 }} />
 
             <>
@@ -649,16 +747,17 @@ function Wallets() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                1. The tool can search for all stake accounts for which a wallet is the Stake Authority. <br />
+                1. The tool can search for all stake accounts for a number of parameters. <br />
                 2. Choose the rocker button between "active" for only active stake accounts or "all" for all stake accounts <br />
-                3. Balance and active stake values are is SOL, not Lamports <br />
-                4. Type field shows the reported state of the account, typically "delegated" or "initialized" <br />
-                5. The "Deactivated" column shows the deactivation epoch for inactive stake accounts. Otherwise it is null<br />
-                6. The "Unlock Date" column shows the unlock date for stake accounts with a lockup period. If there is no lockup, it is null<br /> 
+                3. Choose the rocker button between "staker" (Wallet or Stake Authority), "withdrawer" (Withdraw Authority), "custodian" (if there's a lockup), or "voter" (validator delegated vote pubkey) to search for stake accounts by the respective key <br />
+                4. Balance and active stake values are is SOL, not Lamports <br />
+                5. Type field shows the reported state of the account, typically "delegated" or "initialized" <br />
+                6. The "Deactivated" column shows the deactivation epoch for inactive stake accounts. Otherwise it is null<br />
+                7. The "Unlock Date" column shows the unlock date for stake accounts with a lockup period. If there is no lockup, it is null<br /> 
               </Typography>
               <br/>
               <Typography>
-                For more detail, view the address on a dedicated block explorer: &nbsp;
+                For more detail, click on an address link to view the account on a dedicated block explorer: &nbsp;
                 <Link
                 color="secondary"
                 href={
