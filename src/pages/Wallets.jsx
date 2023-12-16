@@ -378,7 +378,7 @@ function Wallets() {
           const unlockUnixTimestamp =
             account.account.data.parsed.info.meta.lockup?.unixTimestamp;
           stakeAccount.unlockUnixTimestamp = unlockUnixTimestamp;
-          stakeAccount.unlockDate = unlockUnixTimestamp
+          stakeAccount.unlockDate = (unlockUnixTimestamp > Math.floor(Date.now() / 1000))
             ? new Date(unlockUnixTimestamp * 1000).toISOString().split("T")[0]
             : null;
           stakeAccount.type = account.account.data.parsed?.type;
