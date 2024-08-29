@@ -462,9 +462,8 @@ function Stake() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/tx/" +
-            params.row.signature +
-            "?cluster=mainnet-qn1"
+            "https://solscan.io/tx/" +
+            params.row.signature
           }
         >
           {params.row.signature.slice(0, 4)}...
@@ -481,9 +480,9 @@ function Stake() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
+            "https://solscan.io/account/" +
             params.row.authority2 +
-            "?cluster=mainnet-qn1"
+            "#transfers"
           }
         >
           {params.row.authority2.slice(0, 4)}...
@@ -500,9 +499,9 @@ function Stake() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
+            "https://solscan.io/account/" +
             params.row.source +
-            "?cluster=mainnet-qn1"
+            "#transfers"
           }
         >
           {params.row.source.slice(0, 4)}...
@@ -519,9 +518,9 @@ function Stake() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
+            "https://solscan.io/account/" +
             params.row.destination +
-            "?cluster=mainnet-qn1"
+            "#transfers"
           }
         >
           {params.row.destination.slice(0, 4)}...
@@ -831,9 +830,9 @@ const unlocksGridColumns = [
       <Link
         color="secondary"
         href={
-          "https://solana.fm/address/" +
+          "https://solscan.io/account/" +
           params.row.stakepubkey +
-          "?cluster=mainnet-qn1"
+          "#transfers"
         }
       >
         {params.row.stakepubkey.slice(0, 4)}...
@@ -850,9 +849,9 @@ const unlocksGridColumns = [
       <Link
         color="secondary"
         href={
-          "https://solana.fm/address/" +
+          "https://solscan.io/account/" +
           params.row.staker +
-          "?cluster=mainnet-qn1"
+          "#transfers"
         }
       >
         {params.row.staker.slice(0, 4)}...
@@ -869,9 +868,9 @@ const unlocksGridColumns = [
       <Link
         color="secondary"
         href={
-          "https://solana.fm/address/" +
+          "https://solscan.io/account/" +
           params.row.withdrawer +
-          "?cluster=mainnet-qn1"
+          "#transfers"
         }
       >
         {params.row.withdrawer.slice(0, 4)}...
@@ -888,9 +887,9 @@ const unlocksGridColumns = [
       <Link
         color="secondary"
         href={
-          "https://solana.fm/address/" +
+          "https://solscan.io/account/" +
           params.row.custodian +
-          "?cluster=mainnet-qn1"
+          "#transfers"
         }
       >
         {params.row.custodian.slice(0, 4)}...

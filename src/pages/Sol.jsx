@@ -488,9 +488,8 @@ function Sol() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/tx/" +
-            params.row.signature +
-            "?cluster=mainnet-qn1"
+            "https://solscan.io/tx/" +
+            params.row.signature
           }
         >
           {params.row.signature.slice(0, 4)}...
@@ -508,9 +507,9 @@ function Sol() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
+            "https://solscan.io/account/" +
             params.row.from +
-            "?cluster=mainnet-qn1"
+            "#transfers"
           }
         >
           {params.row.from.slice(0, 4)}...
@@ -528,9 +527,9 @@ function Sol() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
+            "https://solscan.io/account/" +
             params.row.to +
-            "?cluster=mainnet-qn1"
+            "#transfers"
           }
         >
           {params.row.to.slice(0, 4)}...
@@ -563,9 +562,9 @@ function Sol() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
+            "https://solscan.io/account/" +
             params.row.address +
-            "?cluster=mainnet-qn1"
+            "#transfers"
           }
         >
           {params.row.address.slice(0, 4)}...

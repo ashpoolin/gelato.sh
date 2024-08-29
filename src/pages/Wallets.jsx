@@ -203,9 +203,8 @@ function Wallets() {
           <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
-            params.row.mint +
-            "?cluster=mainnet-qn1"
+            "https://solscan.io/account/" +
+            params.row.mint
           }
           >
           {params.row.mint.slice(0, 4)}...
@@ -222,9 +221,8 @@ function Wallets() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
-            params.row.address +
-            "?cluster=mainnet-qn1"
+            "https://solscan.io/account/" +
+            params.row.address
           }
         >
           {params.row.address.slice(0, 4)}...
@@ -456,9 +454,8 @@ function Wallets() {
           <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
-            params.row.stakePubkey +
-            "?cluster=mainnet-qn1"
+            "https://solscan.io/account/" +
+            params.row.stakePubkey
           }
           >
           {params.row.stakePubkey.slice(0, 4)}...
@@ -501,9 +498,8 @@ function Wallets() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
-            params.row.staker +
-            "?cluster=mainnet-qn1"
+            "https://solscan.io/account/" +
+            params.row.staker
           }
         >
           {params.row.staker.slice(0, 4)}...
@@ -520,9 +516,8 @@ function Wallets() {
         <Link
           color="secondary"
           href={
-            "https://solana.fm/address/" +
-            params.row.withdrawer +
-            "?cluster=mainnet-qn1"
+            "https://solscan.io/account/" +
+            params.row.withdrawer
           }
         >
           {params.row.withdrawer.slice(0, 4)}...
@@ -531,7 +526,7 @@ function Wallets() {
       ),
     },
     {
-      field: "vote",
+      field: "voter",
       headerName: "Validator",
       GridColDef: "flex",
       flex: 1,
@@ -540,9 +535,8 @@ function Wallets() {
           <Link
             color="secondary"
             href={
-              "https://solana.fm/address/" +
-              params.row.voter +
-              "?cluster=mainnet-qn1"
+              "https://solscan.io/account/" +
+              params.row.voter
             }
           >
             {params.row.voter.slice(0, 4)}...{params.row.voter.slice(params.row.voter.length - 4)}
@@ -594,7 +588,7 @@ function Wallets() {
 
             <>
               <Typography variant="h5">
-              {walletLabel ? <Link color="secondary" href={"https://solana.fm/address/" + displayAddress + "?cluster=mainnet-qn1"}>{walletLabel}</Link> : <Link color="secondary" href={"https://solana.fm/address/" + displayAddress + "?cluster=mainnet-qn1"}>{displayAddress}</Link>}
+              {walletLabel ? <Link color="secondary" href={"https://solscan.io/account/" + displayAddress}>{walletLabel}</Link> : <Link color="secondary" href={"https://solscan.io/account/" + displayAddress}>{displayAddress}</Link>}
               </Typography>
               <Typography>
                     {(totalWalletValue > 0) ? `Total Fungible Token Value (USD): $${formatNumber(totalWalletValue)}` : null}
@@ -630,10 +624,8 @@ function Wallets() {
                 <Link
                 color="secondary"
                 href={
-                  "https://solana.fm/address/" +
-                  displayAddress +
-                  "?cluster=mainnet-qn1"
-                }>solana.fm</Link>
+                  "https://solscan.io/"   
+                }>solscan.io</Link>
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -712,7 +704,7 @@ function Wallets() {
 
             <>
                   <Typography variant="h5">
-                    {stakeWalletLabel ? <Link color="secondary" href={"https://solana.fm/address/" + stakeDisplayAddress + "?cluster=mainnet-qn1"}>{stakeWalletLabel}</Link> : <Link color="secondary" href={"https://solana.fm/address/" + stakeDisplayAddress + "?cluster=mainnet-qn1"}>{stakeDisplayAddress}</Link>}
+                    {stakeWalletLabel ? <Link color="secondary" href={"https://solscan.io/account/" + stakeDisplayAddress}>{stakeWalletLabel}</Link> : <Link color="secondary" href={"https://solscan.io/account/" + stakeDisplayAddress}>{stakeDisplayAddress}</Link>}
                   </Typography>
                   <Typography>
                     {(totalStakeBalance > 0) ? `Stake Account(s) Total Balance: ${formatNumber(totalStakeBalance)}` : null}
@@ -761,10 +753,8 @@ function Wallets() {
                 <Link
                 color="secondary"
                 href={
-                  "https://solana.fm/address/" +
-                  stakeDisplayAddress +
-                  "?cluster=mainnet-qn1"
-                }>solana.fm</Link>
+                  "https://solscan.io/"
+                }>solscan.io</Link>
               </Typography>
             </AccordionDetails>
           </Accordion>
