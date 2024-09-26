@@ -34,6 +34,8 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box } from "@mui/system";
 
+import { Pagination } from "@mui/material";
+
 const URL = process.env.REACT_APP_API_URL;
 // const URL = "http://localhost:3001"
 
@@ -311,7 +313,14 @@ function Sol() {
   exchangeLabelMap.set("ASTyfSima4LLAdDgoFGkgqoKowG1LZFDr9fAQrg7iaJZ", "mexc");
 
   const [dataGrid, setDataGrid] = useState([]);
+  // const [webhookGrid, setWebhookGrid] = useState([]);
+
+  // new additions for pagination
   const [webhookGrid, setWebhookGrid] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const limit = 100;
 
   // calls to collect data from the postgres API (gelato.express)
   useEffect(() => {
@@ -398,47 +407,79 @@ function Sol() {
     });
   }
 
-  useEffect(() => {
-    getWebhookEvents();
-  }, []);
-  function getWebhookEvents() {
-    fetch(`${URL}/wsevents`)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        const dataObj = JSON.parse(data);
-        const dt = [];
-        const signature = [];
-        const from = [];
-        const from_label = [];
-        const to = [];
-        const to_label = [];
-        const amount = [];
-        dataObj.map((line) => dt.push(line.dt));
-        dataObj.map((line) => signature.push(line.signature));
-        dataObj.map((line) => from.push(line.source));
-        dataObj.map((line) => from_label.push(line.source_label));
-        dataObj.map((line) => to.push(line.destination));
-        dataObj.map((line) => to_label.push(line.destination_label));
-        dataObj.map((line) => amount.push(line.uiamount));
+  // useEffect(() => {
+  //   getWebhookEvents();
+  // }, []);
+  // function getWebhookEvents() {
+  //   fetch(`${URL}/wsevents`)
+  //     .then((response) => {
+  //       return response.text();
+  //     })
+  //     .then((data) => {
+  //       const dataObj = JSON.parse(data);
+  //       const dt = [];
+  //       const signature = [];
+  //       const from = [];
+  //       const from_label = [];
+  //       const to = [];
+  //       const to_label = [];
+  //       const amount = [];
+  //       dataObj.map((line) => dt.push(line.dt));
+  //       dataObj.map((line) => signature.push(line.signature));
+  //       dataObj.map((line) => from.push(line.source));
+  //       dataObj.map((line) => from_label.push(line.source_label));
+  //       dataObj.map((line) => to.push(line.destination));
+  //       dataObj.map((line) => to_label.push(line.destination_label));
+  //       dataObj.map((line) => amount.push(line.uiamount));
 
-        const grid = dt.map((time, index) => {
-          let myObject = {};
-          myObject.id = index;
-          myObject.dt = time;
-          myObject.signature = signature[index];
-          myObject.from = from[index];
-          myObject.from_label = from_label[index] || "-";
-          myObject.to = to[index];
-          myObject.to_label = to_label[index] || "-";
-          myObject.amount = amount[index];
-          return myObject;
-        });
+  //       const grid = dt.map((time, index) => {
+  //         let myObject = {};
+  //         myObject.id = index;
+  //         myObject.dt = time;
+  //         myObject.signature = signature[index];
+  //         myObject.from = from[index];
+  //         myObject.from_label = from_label[index] || "-";
+  //         myObject.to = to[index];
+  //         myObject.to_label = to_label[index] || "-";
+  //         myObject.amount = amount[index];
+  //         return myObject;
+  //       });
+  //       setWebhookGrid(grid);
+  //     });
+  // }
+
+  // updated websocket events with pagination
+  useEffect(() => {
+    getWebhookEvents(currentPage);
+  }, [currentPage]);
+
+  function getWebhookEvents(page) {
+    fetch(`${URL}/wsevents?page=${page}&limit=${limit}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const grid = data.data.map((item, index) => ({
+          id: index,
+          dt: item.dt,
+          signature: item.signature,
+          from: item.source,
+          from_label: item.source_label || "-",
+          to: item.destination,
+          to_label: item.destination_label || "-",
+          amount: item.uiamount
+        }));
         setWebhookGrid(grid);
-      });
+        setTotalPages(data.totalPages);
+        setTotalCount(data.totalCount);
+      })
+      .catch((error) => console.error('Error fetching webhook events:', error));
   }
 
+  // Add this new function
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  // all the old stuff
   useEffect(() => {
     getExchangeBalances();
   }, []);
@@ -806,8 +847,8 @@ function Sol() {
         </Paper>
       )}
 
-      {tab === 1 && (
-        <Paper
+      {/* {tab === 1 && (
+        <Paper 
           sx={{
             padding: 3,
             margin: 3,
@@ -828,6 +869,45 @@ function Sol() {
             components={{ Toolbar: GridToolbar }}
           />
           <Divider sx={{ marginY: 2 }} />
+          </div>
+        </Paper>
+      )} */}
+
+      {tab === 1 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <div style={{ height: '100%' }}>
+            <Typography variant="h5">
+              Whale Transfer Event Log (&gt;10k SOL)
+            </Typography>
+            <Divider sx={{ marginY: 2 }} />
+            <DataGrid
+              sx={{ minHeight: '600px' }}
+              rows={webhookGrid}
+              columns={webhookGridColumns}
+              components={{ Toolbar: GridToolbar }}
+              rowCount={totalCount}
+              paginationMode="server"
+              page={currentPage - 1}
+              pageSize={limit}
+              onPageChange={(newPage) => setCurrentPage(newPage + 1)}
+              rowsPerPageOptions={[limit]}
+            />
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
+              sx={{ marginTop: 2, display: 'flex', justifyContent: 'center' }}
+            />
+            <Divider sx={{ marginY: 2 }} />
           </div>
         </Paper>
       )}
