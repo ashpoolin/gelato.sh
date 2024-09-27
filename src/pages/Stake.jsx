@@ -34,7 +34,20 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Box } from "@mui/system";
+// import { Box } from "@mui/system";
+
+// required for pagination
+import { 
+  Box, 
+  // Typography, 
+  Select, 
+  MenuItem, 
+  Pagination 
+} from "@mui/material";
+
+function CustomFooter() {
+  return null; // This removes the default footer
+}
 
 const URL = process.env.REACT_APP_API_URL;
 // const URL = "http://localhost:3001"
@@ -231,7 +244,15 @@ const formatNumber = (number) => {
 
 function Stake() {
   const [tab, setTab] = useState(0);
+
+  // pagination for stake events
   const [webhookGrid, setWebhookGrid] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // old stuff
   const [ruggerGrid, setRuggerGrid] = useState([]);
   // const [supplyData, setSupplyData] = useState([]);
   const [stakeScatter, setStakeScatter] = useState([]);
@@ -404,50 +425,77 @@ function Stake() {
     }),
   };
 
+  // pagination for stake events
   useEffect(() => {
-    getWebhookEvents();
-  }, []);
-  function getWebhookEvents() {
-    fetch(`${URL}/stakeevents`)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        const dataObj = JSON.parse(data);
-        // t1.program, t1.type, to_timestamp(t1.blocktime) as dt, t1.signature, t1.authority2, t1.source, t1.destination, t1.uiamount 
-        const program = [];
-        const type = [];
-        const dt = [];
-        const signature = [];
-        const authority2 = [];
-        const source = [];
-        const destination = [];
-        const uiamount = [];
-        dataObj.map((line) => program.push(line.program));
-        dataObj.map((line) => type.push(line.type));
-        dataObj.map((line) => dt.push(line.dt));
-        dataObj.map((line) => signature.push(line.signature));
-        dataObj.map((line) => authority2.push(line.authority2));
-        dataObj.map((line) => source.push(line.source));
-        dataObj.map((line) => destination.push(line.destination));
-        dataObj.map((line) => uiamount.push(line.uiamount));
+    getWebhookEvents(currentPage, pageSize);
+  }, [currentPage, pageSize]);
 
-        const grid = dt.map((time, index) => {
-          let myObject = {};
-          myObject.id = index;
-          myObject.program = program[index];
-          myObject.type = type[index];
-          myObject.dt = time;
-          myObject.signature = signature[index];
-          myObject.authority2 = authority2[index]  || "-";
-          myObject.source = source[index] || "-";
-          myObject.destination = destination[index] || "-";
-          myObject.uiamount = uiamount[index];
-          return myObject;
-        });
+  function getWebhookEvents(page, limit) {
+    fetch(`${URL}/stakeevents?page=${page}&limit=${limit}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const grid = data.data.map((line, index) => ({
+          id: (page - 1) * limit + index + 1,
+          program: line.program,
+          type: line.type,
+          dt: line.dt,
+          signature: line.signature,
+          authority2: line.authority2 || "-",
+          source: line.source || "-",
+          destination: line.destination || "-",
+          uiamount: line.uiamount
+        }));
         setWebhookGrid(grid);
-      });
+        setTotalCount(data.totalCount);
+        setTotalPages(data.totalPages);
+      })
+      .catch((error) => console.error('Error fetching stake events:', error));
   }
+
+  // useEffect(() => {
+  //   getWebhookEvents();
+  // }, []);
+  // function getWebhookEvents() {
+  //   fetch(`${URL}/stakeevents`)
+  //     .then((response) => {
+  //       return response.text();
+  //     })
+  //     .then((data) => {
+  //       const dataObj = JSON.parse(data);
+  //       // t1.program, t1.type, to_timestamp(t1.blocktime) as dt, t1.signature, t1.authority2, t1.source, t1.destination, t1.uiamount 
+  //       const program = [];
+  //       const type = [];
+  //       const dt = [];
+  //       const signature = [];
+  //       const authority2 = [];
+  //       const source = [];
+  //       const destination = [];
+  //       const uiamount = [];
+  //       dataObj.map((line) => program.push(line.program));
+  //       dataObj.map((line) => type.push(line.type));
+  //       dataObj.map((line) => dt.push(line.dt));
+  //       dataObj.map((line) => signature.push(line.signature));
+  //       dataObj.map((line) => authority2.push(line.authority2));
+  //       dataObj.map((line) => source.push(line.source));
+  //       dataObj.map((line) => destination.push(line.destination));
+  //       dataObj.map((line) => uiamount.push(line.uiamount));
+
+  //       const grid = dt.map((time, index) => {
+  //         let myObject = {};
+  //         myObject.id = index;
+  //         myObject.program = program[index];
+  //         myObject.type = type[index];
+  //         myObject.dt = time;
+  //         myObject.signature = signature[index];
+  //         myObject.authority2 = authority2[index]  || "-";
+  //         myObject.source = source[index] || "-";
+  //         myObject.destination = destination[index] || "-";
+  //         myObject.uiamount = uiamount[index];
+  //         return myObject;
+  //       });
+  //       setWebhookGrid(grid);
+  //     });
+  // }
   
   const webhookGridColumns = [
     { field: "program", headerName: "Program", GridColDef: "flex", flex: 1 },
@@ -966,6 +1014,66 @@ const unlocksGridColumns = [
           }}
         >
           <div style={{ height: '100%' }}>
+            <Typography variant="h5">
+              Stake Transfer Event Log (&gt;10k SOL)
+            </Typography>
+            <Divider sx={{ marginY: 2 }} />
+            <DataGrid
+              sx={{ minHeight: '600px' }}
+              rows={webhookGrid}
+              columns={webhookGridColumns}
+              components={{
+                Toolbar: GridToolbar,
+                Footer: CustomFooter
+              }}
+              paginationMode="server"
+              page={currentPage - 1}
+              pageSize={pageSize}
+              rowCount={totalCount}
+              onPageChange={(newPage) => setCurrentPage(newPage + 1)}
+              onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+              disableSelectionOnClick
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginY: 2 }}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={(event, value) => setCurrentPage(value)}
+                color="primary"
+              />
+              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                Results per page:
+                <Select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  sx={{ marginLeft: 2, minWidth: 70 }}
+                  size="small"
+                >
+                  <MenuItem value={25}>25</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                  <MenuItem value={100}>100</MenuItem>
+                </Select>
+              </Typography>
+            </Box>
+            <Divider sx={{ marginY: 2 }} />
+          </div>
+        </Paper>
+      )}
+
+      {/* {tab === 1 && (
+        <Paper
+          sx={{
+            padding: 3,
+            margin: 3,
+            textAlign: "center",
+            width: "100%",
+            minHeight: "100%",
+          }}
+        >
+          <div style={{ height: '100%' }}>
           <Typography variant="h5">
             Stake Transfer Event Log (&gt;10k SOL)
          </Typography>
@@ -979,7 +1087,7 @@ const unlocksGridColumns = [
           <Divider sx={{ marginY: 2 }} />
           </div>
         </Paper>
-      )}
+      )} */}
 
       {tab === 2 && (
         <Paper
