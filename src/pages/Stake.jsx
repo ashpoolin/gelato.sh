@@ -912,7 +912,7 @@ const unlocksGridColumns = [
         <Tab label="Active Stake" />
         <Tab label="Supply" />
         <Tab label="Unlocks" />
-        <Tab label="Shame" />
+        {/* <Tab label="Shame" /> */}
       </Tabs>
 
       {tab === 0 && (
@@ -1221,7 +1221,7 @@ const unlocksGridColumns = [
           </Box>
         </Paper>
       )}
-      {tab === 5 && (
+      {/* {tab === 5 && (
         <Paper
           sx={{
             padding: 3,
@@ -1270,7 +1270,7 @@ const unlocksGridColumns = [
           </Accordion>
           </div>
         </Paper>
-      )}
+      )} */}
     </Stack>
   );
 }

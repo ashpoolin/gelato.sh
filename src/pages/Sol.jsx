@@ -18,7 +18,8 @@ import {
 import { Scatter, Bar, Doughnut } from "react-chartjs-2";
 
 // add filtering to tables
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+// import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+
 import { 
   Link, 
   Stack, 
@@ -34,7 +35,29 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box } from "@mui/system";
 
+import { DataGrid, GridToolbar, gridPageCountSelector, gridPageSelector, gridPageSizeSelector, useGridApiContext, useGridSelector } from "@mui/x-data-grid";
+import { Select, MenuItem } from "@mui/material";
 import { Pagination } from "@mui/material";
+
+function CustomPagination() {
+  const apiRef = useGridApiContext();
+  const page = useGridSelector(apiRef, gridPageSelector);
+  const pageCount = useGridSelector(apiRef, gridPageCountSelector);
+  // const pageSize = useGridSelector(apiRef, gridPageSizeSelector);
+
+  return (
+    <Pagination
+      color="primary"
+      count={pageCount}
+      page={page + 1}
+      onChange={(event, value) => apiRef.current.setPage(value - 1)}
+    />
+  );
+}
+
+function CustomFooter() {
+  return null; // This removes the default footer
+}
 
 const URL = process.env.REACT_APP_API_URL;
 // const URL = "http://localhost:3001"
@@ -320,7 +343,7 @@ function Sol() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const limit = 100;
+  const [pageSize, setPageSize] = useState(25);
 
   // calls to collect data from the postgres API (gelato.express)
   useEffect(() => {
@@ -407,58 +430,17 @@ function Sol() {
     });
   }
 
-  // useEffect(() => {
-  //   getWebhookEvents();
-  // }, []);
-  // function getWebhookEvents() {
-  //   fetch(`${URL}/wsevents`)
-  //     .then((response) => {
-  //       return response.text();
-  //     })
-  //     .then((data) => {
-  //       const dataObj = JSON.parse(data);
-  //       const dt = [];
-  //       const signature = [];
-  //       const from = [];
-  //       const from_label = [];
-  //       const to = [];
-  //       const to_label = [];
-  //       const amount = [];
-  //       dataObj.map((line) => dt.push(line.dt));
-  //       dataObj.map((line) => signature.push(line.signature));
-  //       dataObj.map((line) => from.push(line.source));
-  //       dataObj.map((line) => from_label.push(line.source_label));
-  //       dataObj.map((line) => to.push(line.destination));
-  //       dataObj.map((line) => to_label.push(line.destination_label));
-  //       dataObj.map((line) => amount.push(line.uiamount));
-
-  //       const grid = dt.map((time, index) => {
-  //         let myObject = {};
-  //         myObject.id = index;
-  //         myObject.dt = time;
-  //         myObject.signature = signature[index];
-  //         myObject.from = from[index];
-  //         myObject.from_label = from_label[index] || "-";
-  //         myObject.to = to[index];
-  //         myObject.to_label = to_label[index] || "-";
-  //         myObject.amount = amount[index];
-  //         return myObject;
-  //       });
-  //       setWebhookGrid(grid);
-  //     });
-  // }
-
   // updated websocket events with pagination
   useEffect(() => {
-    getWebhookEvents(currentPage);
-  }, [currentPage]);
+    getWebhookEvents(currentPage, pageSize);
+  }, [currentPage, pageSize]);
 
-  function getWebhookEvents(page) {
-    fetch(`${URL}/wsevents?page=${page}&limit=${limit}`)
+  function getWebhookEvents(page, pageSize) {
+    fetch(`${URL}/wsevents?page=${page}&limit=${pageSize}`)
       .then((response) => response.json())
       .then((data) => {
         const grid = data.data.map((item, index) => ({
-          id: index,
+          id: (page - 1) * pageSize + index + 1,
           dt: item.dt,
           signature: item.signature,
           from: item.source,
@@ -847,32 +829,6 @@ function Sol() {
         </Paper>
       )}
 
-      {/* {tab === 1 && (
-        <Paper 
-          sx={{
-            padding: 3,
-            margin: 3,
-            textAlign: "center",
-            width: "100%",
-            minHeight: "100%",
-          }}
-        >
-          <div style={{ height: '100%' }}>
-          <Typography variant="h5">
-            Whale Transfer Event Log (&gt;10k SOL)
-         </Typography>
-          <Divider sx={{ marginY: 2 }} />
-          <DataGrid
-            sx={{ minHeight: '600px' }}
-            rows={webhookGrid}
-            columns={webhookGridColumns}
-            components={{ Toolbar: GridToolbar }}
-          />
-          <Divider sx={{ marginY: 2 }} />
-          </div>
-        </Paper>
-      )} */}
-
       {tab === 1 && (
         <Paper
           sx={{
@@ -892,21 +848,42 @@ function Sol() {
               sx={{ minHeight: '600px' }}
               rows={webhookGrid}
               columns={webhookGridColumns}
-              components={{ Toolbar: GridToolbar }}
-              rowCount={totalCount}
+              components={{
+                Toolbar: GridToolbar,
+                Footer: CustomFooter
+              }}
               paginationMode="server"
               page={currentPage - 1}
-              pageSize={limit}
+              pageSize={pageSize}
+              rowCount={totalCount}
               onPageChange={(newPage) => setCurrentPage(newPage + 1)}
-              rowsPerPageOptions={[limit]}
+              onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+              disableSelectionOnClick
             />
-            <Pagination
-              count={totalPages}
-              page={currentPage}
-              onChange={handlePageChange}
-              color="primary"
-              sx={{ marginTop: 2, display: 'flex', justifyContent: 'center' }}
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginY: 2 }}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+              />
+              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                Results per page:
+                <Select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  sx={{ marginLeft: 2, minWidth: 70 }}
+                  size="small"
+                >
+                  <MenuItem value={25}>25</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                  <MenuItem value={100}>100</MenuItem>
+                </Select>
+              </Typography>
+            </Box>
             <Divider sx={{ marginY: 2 }} />
           </div>
         </Paper>
