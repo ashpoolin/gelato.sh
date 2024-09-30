@@ -56,11 +56,15 @@ function TransactionContext({ context }) {
         <Table>
           <TableBody>
             {renderTableRow("Signature", context.signature, true)}
+            {renderTableRow("Description", context.enhancedDescription)}
+            {renderTableRow("Type", context.enhancedType)}
+            {renderTableRow("Source", context.enhancedSource)}
+            {renderTableRow("Fee Payer", context.enhancedFeePayer)}
             {renderTableRow("Tx Version", context.data?.version)}
+            {renderTableRow("Blocktime", context.blocktime + " / " + formatDate(context.blocktime))}
             {renderTableRow("Slot", context.slot)}
-            {renderTableRow("Blocktime", formatDate(context.blockTime))}
             {renderTableRow("Error", context.err || 'None')}
-            {renderTableRow("Fee", context.fee)}
+            {renderTableRow("Fee", context.fee + " SOL")}
             {renderTableRow("Compute Units Consumed", context.data?.meta?.computeUnitsConsumed)}
             {renderTableRow("Recent Blockhash", context.data?.transaction?.message?.recentBlockhash)}
           </TableBody>
