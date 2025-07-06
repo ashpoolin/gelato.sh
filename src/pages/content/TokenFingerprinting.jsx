@@ -77,7 +77,7 @@ fingerprinting shows promise and could be a subject of future research.</Typogra
  More Info:
  </Typography> 
  <Typography variant="body2">
- Twitter Post: <Link href="https://x.com/solanobahn/status/1706705684296081649?s=20">https://x.com/solanobahn/status/1706705684296081649?s=20</Link>
+ Twitter Post: <Link href="https://x.com/4shpool/status/1706705684296081649">https://x.com/4shpool/status/1706705684296081649</Link>
  </Typography> 
  </CardContent> 
  </Card> 

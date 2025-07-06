@@ -75,7 +75,7 @@ Performance is another area of focus. The system works reasonably well, returnin
  Email: <Link href="mailto:ashpoolin@protonmail.com">ashpoolin@protonmail.com</Link> 
  </Typography> 
  <Typography variant="body2">
- Twitter: <Link href="https://twitter.com/solanobahn">@solanobahn</Link>
+ Twitter: <Link href="https://twitter.com/4shpool">@4shpool</Link>
  </Typography> 
  </CardContent> 
  </Card> 

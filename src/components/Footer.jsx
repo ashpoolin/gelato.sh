@@ -15,7 +15,7 @@ function Footer() {
       <IconButton href="https://github.com/ashpoolin/gelato.sh">
         <GitHub />
       </IconButton>
-      <IconButton href="https://twitter.com/solanobahn">
+      <IconButton href="https://twitter.com/4shpool">
         <Twitter />
       </IconButton>
     </Stack>
